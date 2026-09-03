@@ -3,9 +3,11 @@
 # Backend - Portal de Clientes Externos (ARQ-2, anexo v1.2)
 # Dockerfile multi-stage: targets `dev` (desarrollo con hot-reload)
 # y `prod` (runtime minimo). Node 20 LTS fijo (paridad dev/CI/prod).
+# Base node:20 (Debian full): incluye OpenSSL 3, requerido por los
+# engines de Prisma (en alpine/musl y slim Prisma no los detecta).
 # ============================================================
 
-FROM node:20-alpine AS base
+FROM node:20 AS base
 WORKDIR /app
 ENV NODE_ENV=development
 # npm ci requiere package-lock.json versionado en el repo
@@ -26,7 +28,7 @@ COPY src ./src
 RUN npm run build
 
 # --- Target PROD (runtime minimo) ---
-FROM node:20-alpine AS prod
+FROM node:20 AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules

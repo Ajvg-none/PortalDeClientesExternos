@@ -61,7 +61,8 @@ model ApiKey {
 
 model Order {
   id                          BigInt    @id @default(autoincrement())
-  externalId                  String    @unique @default(uuid()) @map("external_id") @db.Uuid
+  // DEFAULT gen_random_uuid() a nivel BD (igual que el SQL del TXT)
+  externalId                  String    @unique @default(dbgenerated("gen_random_uuid()")) @map("external_id") @db.Uuid
   orderNumber                 String    @unique @map("order_number") @db.VarChar(100)
   company                     String    @db.VarChar(255)
   patient                     String    @db.VarChar(255)
@@ -104,8 +105,8 @@ model Order {
   syncedAt                    DateTime?  @map("synced_at") @db.Timestamptz(6)
 
   // Auditoria / propiedad
-  createdBy                   BigInt?
-  creator                     User?      @relation(fields: [createdBy], references: [id], map: "created_by")
+  createdBy                   BigInt?   @map("created_by")
+  creator                     User?     @relation(fields: [createdBy], references: [id])
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
 

@@ -11,7 +11,7 @@
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "jest --runInBand --testPathIgnorePatterns '/node_modules/'",
+    "test": "jest --runInBand",
     "test:integration": "node scripts/integration-tests.mjs",
     "test:all": "npm run test && npm run test:integration"
   },

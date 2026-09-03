@@ -1,5 +1,5 @@
-import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ApiError, httpErrors } from '../errors';
+import type { ErrorRequestHandler, RequestHandler } from 'express';
 
 /**
  * Middleware de ruta no encontrada: responde 404 en formato JSON estandar.
@@ -23,5 +23,5 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
   // eslint-disable-next-line no-console
   console.error('[errorHandler]', err);
-  res.status(500).json(httpErrors.internal());
+  res.status(500).json({ code: 'INTERNAL_ERROR', message: 'Error interno del servidor' });
 };
