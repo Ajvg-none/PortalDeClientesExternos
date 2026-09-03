@@ -67,7 +67,8 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5173 >/dev/null || exit 1"]
+      # 127.0.0.1 (no localhost: Vite escucha IPv4 y wget resolveria ::1)
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5173 >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
