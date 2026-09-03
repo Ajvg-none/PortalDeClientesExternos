@@ -1,0 +1,682 @@
+STACK TECNOLOGICO
+
+Stack Tecnológico
+Frontend: React 18 como librería para construir la interfaz de usuario como una aplicación de una sola página (SPA), junto con Vite como herramienta de build y entorno de desarrollo rápido.
+Backend: Node.js en su versión 20 LTS como runtime de JavaScript del lado del servidor, y Express.js como framework para construir la API REST de manera sencilla y flexible.
+ORM: Prisma como capa de acceso a la base de datos, facilitando consultas tipadas, migraciones y manejo de modelos.
+Base de datos: PostgreSQL en su versión 16, base de datos relacional robusta que almacena usuarios, órdenes y la API Key.
+Autenticación: JWT (JSON Web Tokens) para manejar sesiones de usuarios de forma stateless, y bcryptjs para aplicar hash seguro a las contraseñas.
+Integración externa: API Key en el header X-API-Key para autenticar las peticiones del middleware externo.
+Despliegue: Docker para contenerizar los servicios y Docker Compose para orquestar los contenedores en el entorno de desarrollo y producción.
+Control de versiones: Git como sistema de control de versiones del código fuente.
+Documentación de API: OpenAPI/Swagger como estándar opcional para documentar los contratos de la API, especialmente los endpoints de integración.
+Herramientas de desarrollo y testing: Nodemon para recarga automática del backend durante desarrollo, Jest como framework de pruebas unitarias y de integración, Supertest para probar endpoints HTTP, morgan para registrar las peticiones y express-validator para validar los datos de entrada en las rutas.
+
+REQUISITOS FUNCIONALES DEL PROYECTO
+
+Descripción y Contexto del Software
+Portal de Clientes Externos - Sistema de Gestión de Órdenes Ópticas
+Contexto
+Nuestra empresa es una cadena óptica con presencia a nivel nacional que cuenta con su propio laboratorio de producción. Este laboratorio nos permite ofrecer servicios de fabricación de lentes no solo para nuestras propias tiendas, sino también para otras ópticas independientes que requieren tercerizar su producción.
+Actualmente, las tiendas de nuestra cadena operan con un sistema SaaS de facturación y gestión administrativa, el cual se integra con nuestro laboratorio a través de un middleware que extrae las órdenes y genera los tickets de producción y VCA (Vale de Compra Automatizada).
+El desafío surge al no contar con un canal formal y digital para que las ópticas externas (nuestros clientes) puedan solicitar trabajos ópticos de manera ordenada y trazable, gestionando las órdenes en un solo lugar y garantizando la integración con nuestro flujo de producción actual.
+Solución Desarrollada
+Portal de Clientes Externos es una plataforma web diseñada específicamente para gestionar el ciclo de vida de las órdenes ópticas provenientes de clientes externos (ópticas asociadas). Este sistema permite:
+•	A las ópticas clientes: Crear y gestionar sus órdenes de trabajo de manera autónoma, ingresando todos los datos ópticos necesarios (fórmula, tratamiento, montura, coloración) desde un panel intuitivo y seguro.
+•	Al laboratorio: Visualizar en tiempo real todas las órdenes entrantes de todos los clientes en un único tablero, facilitando la planificación de la producción.
+•	A los administradores: Gestionar usuarios (altas, bajas, roles), monitorear el flujo de órdenes y acceder a estadísticas y reportes para la toma de decisiones.
+La solución se integra de manera transparente con la infraestructura tecnológica existente: el middleware actual (desarrollado previamente) se ha extendido para consumir órdenes desde este nuevo portal, asegurando que las órdenes de clientes externos sigan el mismo flujo de producción que las órdenes de nuestras tiendas internas.
+De esta forma, centralizamos la recepción de pedidos de terceros, eliminamos procesos manuales, reducimos errores de captura y mejoramos la experiencia de nuestros clientes externos, todo mientras maximizamos el uso de nuestra capacidad productiva.
+
+REQUISITOS FUNCIONALES - PORTAL DE CLIENTES EXTERNOS
+________________________________________
+Módulo 1: Autenticación y Seguridad
+•	RF-01: El sistema debe contar con una pantalla de inicio de sesión (usuario y contraseña).
+•	RF-02: Los usuarios solo pueden acceder al sistema con credenciales válidas asignadas por el administrador (no hay registro público).
+•	RF-03: El sistema debe gestionar sesiones. Al cerrar sesión, se redirige al login.
+•	RF-04: Deben existir tres roles diferenciados:
+o	"Cliente Externo": solo ve su propio panel, puede crear órdenes y ver su historial.
+o	"Laboratorio": ve todas las órdenes de todos los clientes en modo de solo lectura. NO puede crear, editar, aprobar ni rechazar órdenes.
+o	"Administrador": gestión completa de usuarios y visualización de todas las órdenes con estadísticas.
+________________________________________
+Módulo 2: Panel del Cliente 
+2.1. Dashboard
+•	RF-05: Al ingresar, el cliente ve todas sus órdenes en una tabla histórica, ordenadas por fecha de creación (más reciente primero). Muestra: N° de orden (ingresado por el cliente), Fecha de creación, y un resumen rápido de los datos ópticos (ej: "OD -2.50 / OI -2.25").
+•	RF-06: El cliente debe visualizar un indicador simple: Total de órdenes creadas (número total de órdenes que ha enviado).
+2.2. Creación de una nueva orden
+•	RF-07: El cliente debe poder llenar un formulario para solicitar un nuevo trabajo óptico.
+•	RF-07.1: El sistema debe colocar la fecha y la hora exacta en la que se generó la orden 
+•	RF-08: El formulario debe incluir exactamente los siguientes campos:
+Datos Generales:
+•	Número de Orden (texto, obligatorio) - Identificador único que el cliente asigna a su orden. Este campo será único en el sistema.
+•	Empresa (texto, obligatorio)
+•	Paciente (texto, obligatorio)
+
+Fórmula Óptica - Ojo Derecho (OD):
+•	Esfera (número)
+•	Cilindro (número)
+•	Eje (número)
+•	Add (número)
+•	DNP (número)
+•	Altura (número)
+•	Código Producto (texto)
+Fórmula Óptica - Ojo Izquierdo (OI):
+•	Esfera (número)
+•	Cilindro (número)
+•	Eje (número)
+•	Add (número)
+•	DNP (número)
+•	Altura (número)
+•	Código Producto (texto)
+Tratamiento:
+•	Selección única entre:
+o	ECO (AR Verde)
+o	OCEAN (AR Azul)
+o	SOLERX SILVER
+o	SOLERX BLUE
+Tipo de Montura:
+•	Selección única entre:
+o	METAL ARO COMPLETO
+o	METAL SEMI-AEREA
+o	PASTA ARO COMPLETO
+o	PASTA SEMI-AEREA
+o	AL AIRE
+•	Marca (texto)
+•	Modelo (texto)
+•	Color (texto)
+Coloración:
+•	Color (texto)
+•	Unicolor (checkbox)
+•	Degradado % (número)
+Observaciones adicionales: 
+•	Campo de texto libre.
+•	RF-09: El formulario no tendrá campos obligatorios más allá de Número de Orden, Empresa y Paciente. No hay validaciones estrictas en los campos numéricos (se permite dejar en blanco).
+•	RF-10: El sistema debe validar que el Número de Orden ingresado por el cliente sea único en todo el sistema. Si ya existe una orden con ese número, se debe mostrar un error y no permitir el envío.
+•	RF-11: No se permite adjuntar archivos en el sistema.
+•	RF-12: Antes de enviar, debe haber una vista de "Resumen de la orden" para verificar los datos.
+•	RF-13: Al enviar, la orden se guarda en el sistema con el Número de Orden proporcionado por el cliente y se marca como "Pendiente de sincronización".
+2.3. Historial de órdenes
+•	RF-14: El cliente tiene una tabla con TODAS sus órdenes.
+•	RF-15: La tabla permite filtros por rango de fechas y ordenamiento (más reciente primero).
+•	RF-16: Al hacer clic en una orden, se abre el detalle completo (todos los datos ingresados).
+•	RF-17: El cliente no puede editar ni cancelar una orden después de enviada.
+________________________________________
+Módulo 3: Panel del Laboratorio
+•	RF-18: El Laboratorio ve un listado completo de todas las órdenes de todos los clientes.
+•	RF-19: El listado muestra: N° de orden (ingresado por el cliente), Cliente (Empresa), Fecha de creación, y un resumen rápido de los datos ópticos.
+•	RF-20: Permite filtros: por rango de fechas y por cliente.
+•	RF-21: Al hacer clic en una orden, se abre el detalle completo con todos los datos ingresados por el cliente.
+•	RF-22: El Laboratorio solo puede visualizar las órdenes. No puede crear, editar, aprobar, rechazar ni cancelar ninguna orden.
+________________________________________
+Módulo 4: Panel de Administración
+4.1. Gestión de Usuarios
+•	RF-23: El administrador debe poder crear, editar, habilitar/deshabilitar y eliminar cuentas de clientes externos.
+•	RF-24: Al crear un usuario cliente, se solicitan:
+o	Nombre de la empresa/cliente (texto, obligatorio)
+o	Correo electrónico (texto, se guarda pero no se usa para notificaciones)
+o	Teléfono (texto)
+o	Dirección (texto)
+o	Contraseña temporal (el administrador la escribe y la comunica externamente)
+•	RF-25: El administrador debe poder crear, editar, habilitar/deshabilitar y eliminar cuentas de Laboratorio.
+•	RF-26: El administrador puede reiniciar/restablecer la contraseña de cualquier usuario.
+•	RF-27: La lista de usuarios debe ser consultable y filtrable (por nombre, por rol, por estado activo/inactivo).
+4.2. Visualización de todas las órdenes
+•	RF-28: El administrador ve un listado maestro con TODAS las órdenes de todos los clientes.
+•	RF-29: El listado muestra: N° de orden (ingresado por el cliente), Cliente (Empresa), Fecha de creación, Estado de sincronización (Pendiente/Sincronizada), y resumen rápido.
+•	RF-30: Permite filtros: por rango de fecha, por cliente, por estado de sincronización.
+•	RF-31: Al hacer clic en una orden, ve el detalle completo con todos los datos ingresados por el cliente y su estado de sincronización.
+•	RF-32: El administrador no puede editar ni cancelar órdenes. Solo visualiza.
+4.3. Estadísticas y Reportes
+•	RF-33: El administrador debe ver un dashboard con estadísticas básicas:
+o	Total de órdenes por mes (gráfico de barras)
+o	Órdenes por cliente (top 5)
+o	Órdenes pendientes de sincronización vs sincronizadas
+•	RF-34: Debe poder exportar un reporte en formato CSV/Excel con el listado de órdenes según los filtros aplicados.
+________________________________________
+Módulo 5: Integración con el Middleware (Modelo PULL)
+5.1. Endpoint para que el middleware consulte órdenes
+•	RF-35: El portal debe exponer un endpoint REST GET /api/external-orders/pending que el middleware consultará periódicamente para obtener órdenes pendientes de sincronización.
+•	RF-36: El endpoint debe devolver solo las órdenes que estén marcadas como "Pendiente de sincronización".
+•	RF-37: El endpoint debe soportar paginación para que el middleware pueda consumir las órdenes una por una o en lotes, evitando saltos y desperfectos. Parámetros de paginación:
+o	limit (opcional): cantidad de órdenes por página (valor por defecto: 10)
+o	offset (opcional): desplazamiento para la paginación
+•	RF-38: Cada orden devuelta debe incluir todos los datos del formulario en el formato JSON canónico acordado.
+5.2. Autenticación del endpoint
+•	RF-39: El endpoint debe estar protegido con API Key.
+•	RF-40: La API Key debe ser única y estática, configurada una sola vez en el portal (no generable automáticamente).
+•	RF-41: El middleware usará esta API Key en el header X-API-Key para autenticarse.
+5.3. Lógica de sincronización
+•	RF-42: El middleware es quien consulta al portal. El portal no inicia ninguna comunicación.
+•	RF-43: Cuando el middleware consulta el endpoint y obtiene una orden, es responsabilidad del middleware procesarla e inyectarla en su pipeline.
+•	RF-44: El portal no sabe si el middleware procesó exitosamente la orden. El portal solo entrega las órdenes pendientes cuando se las solicitan.
+•	RF-45: El portal debe tener un mecanismo para que el middleware marque una orden como sincronizada después de procesarla. Esto puede ser:
+o	Opción A: El middleware hace un PUT /api/external-orders/:id/sync para marcar la orden como sincronizada.
+o	Opción B: El middleware incluye un campo en la consulta para que el portal devuelva las órdenes y automáticamente las marque como "En proceso" o "Sincronizada".
+•	RF-46: Se recomienda la Opción A (endpoint separado para marcar sincronización), para que el portal tenga control claro de qué órdenes ya fueron tomadas.
+•	RF-47: El administrador debe poder ver en el listado maestro el estado de sincronización de cada orden: "Pendiente" o "Sincronizada".
+5.4. Contrato JSON de respuesta
+•	RF-48: El endpoint GET /api/external-orders/pending debe devolver una respuesta con la siguiente estructura:
+json
+{
+  "data": [
+    {
+      "externalId": "98765",
+      "number": "ORDEN-001",
+      "date": "2026-08-28T10:30:00",
+      "orderFromSupplier": true,
+      "status": "CONFIRMED",
+      "customer": {
+        "company": "Óptica El Centro",
+        "patient": "Juan Pérez"
+      },
+      "warehouse": {
+        "id": 3,
+        "name": "Tienda El Centro"
+      },
+      "opticalDataOD": {
+        "sphere": -2.50,
+        "cylinder": -0.75,
+        "axis": 180,
+        "addition": 2.00,
+        "dnp": 30.5,
+        "height": 22,
+        "productCode": "LENTE-123"
+      },
+      "opticalDataOI": {
+        "sphere": -2.25,
+        "cylinder": -0.50,
+        "axis": 175,
+        "addition": 2.00,
+        "dnp": 31.0,
+        "height": 21,
+        "productCode": "LENTE-456"
+      },
+      "treatment": "OCEAN",
+      "mount": {
+        "type": "METAL ARO COMPLETO",
+        "brand": "Ray-Ban",
+        "model": "RB-123",
+        "color": "Negro"
+      },
+      "coloration": {
+        "color": "Azul",
+        "unicolor": true,
+        "degradadoPercent": null
+      },
+      "observations": "Cliente solicita entrega urgente",
+      "issuedOrderId": null,
+      "issuedInvoiceId": null,
+      "items": [
+        { "code": "LENTE-123", "description": "Lente Progresivo", "quantity": 1 },
+        { "code": "LENTE-456", "description": "Lente Progresivo", "quantity": 1 }
+      ]
+    }
+  ],
+  "pagination": {
+    "total": 25,
+    "limit": 10,
+    "offset": 0
+  }
+}
+5.5. Endpoint para marcar sincronización
+•	RF-49: El portal debe exponer un endpoint PUT /api/external-orders/:externalId/sync para que el middleware marque una orden como sincronizada después de procesarla.
+•	RF-50: Este endpoint debe:
+o	Buscar la orden por externalId.
+o	Cambiar su estado de sincronización a "Sincronizada".
+o	Registrar la fecha/hora de sincronización.
+o	Responder con HTTP 200 y confirmación.
+•	RF-51: Si la orden no existe, debe responder con HTTP 404.
+•	RF-52: Este endpoint debe estar protegido con la misma API Key que el endpoint de consulta.
+________________________________________
+Módulo 6: Estados de Sincronización
+•	RF-53: Las órdenes tendrán los siguientes estados de sincronización (visibles solo para Administrador):
+o	Pendiente de sincronización: la orden ha sido creada por el cliente pero aún no ha sido tomada por el middleware.
+o	Sincronizada: la orden ya fue tomada por el middleware.
+•	RF-54: El cliente nunca ve estos estados. Solo ve los datos de su orden.
+•	RF-55: El Laboratorio nunca ve estos estados. Solo visualiza los datos de las órdenes.
+•	RF-56: El Administrador sí ve estos estados en el listado maestro.
+________________________________________
+Módulo 7: Flujo de Trabajo
+Flujo completo del sistema:
+1.	Cliente → inicia sesión, llena formulario (incluyendo su propio Número de Orden) y envía.
+2.	Sistema → valida que el Número de Orden sea único y guarda la orden con estado "Pendiente de sincronización".
+3.	Laboratorio → inicia sesión y visualiza todas las órdenes de todos los clientes (solo lectura).
+4.	Middleware → consulta periódicamente GET /api/external-orders/pending y obtiene las órdenes pendientes.
+5.	Middleware → procesa cada orden (genera VCA, imprime, etc.) y la inyecta en su pipeline.
+6.	Middleware → una vez procesada, hace PUT /api/external-orders/:externalId/sync para marcar la orden como "Sincronizada".
+7.	Administrador → visualiza todas las órdenes y su estado de sincronización.
+________________________________________
+ 
+PANTALLAS Y FRONTEND
+
+Análisis de Arquitectura Frontend – Portal de Clientes Externos
+1. Resumen de pantallas por rol
+Cliente Externo
+•	Listado de órdenes (Dashboard)
+o	Muestra todas sus órdenes en una tabla histórica.
+o	Ordenadas por fecha de creación (más reciente primero).
+o	Incluye: número de orden, fecha de creación y resumen rápido de datos ópticos.
+•	Formulario de nueva orden
+o	Página independiente con todos los campos requeridos (datos generales, fórmula OD/OI, tratamiento, montura, coloración, observaciones).
+o	Incluye validación de unicidad del número de orden.
+•	Detalle de orden
+o	Visualización completa de todos los datos de una orden en modo solo lectura.
+o	Accesible haciendo clic en cualquier fila del listado.
+•	(Opcional) Perfil de usuario
+o	Edición de datos personales (no se incluye en los requisitos iniciales, pero puede ser útil).
+Laboratorio
+•	Listado de todas las órdenes
+o	Muestra órdenes de todos los clientes.
+o	Permite filtros por rango de fechas y por cliente.
+o	Columnas: número de orden, cliente (empresa), fecha de creación y resumen óptico.
+•	Detalle de orden
+o	Visualización completa en modo solo lectura.
+o	No permite crear, editar ni cancelar.
+Administrador
+•	Dashboard de estadísticas
+o	Gráfico de barras: órdenes por mes.
+o	Gráfico de pastel: pendientes vs sincronizadas.
+o	Top 5 clientes por cantidad de órdenes.
+o	Tarjetas con totales.
+•	Listado maestro de órdenes
+o	Todas las órdenes de todos los clientes.
+o	Columnas adicionales: estado de sincronización (pendiente/sincronizada).
+o	Filtros: fechas, cliente, estado de sincronización.
+•	Detalle de orden (con estado de sincronización)
+o	Igual que el detalle de cliente/laboratorio, pero mostrando además el estado de sincronización y la fecha de sincronización.
+•	Gestión de usuarios
+o	Listado de usuarios con columnas: nombre, email, rol, estado (activo/inactivo).
+o	Filtros por nombre, rol y estado.
+o	Acciones: crear, editar, habilitar/deshabilitar, eliminar y resetear contraseña.
+Común
+•	Pantalla de inicio de sesión
+o	Formulario con usuario y contraseña.
+o	Redirección según rol tras autenticación.
+•	Pantalla 404 (No encontrada)
+o	Manejo de rutas inexistentes.
+________________________________________
+2. Decisiones UI/UX: ¿Página o modal?
+A continuación se detalla cuándo usar una página independiente y cuándo un modal, justificando cada decisión.
+Formulario de nueva orden → Página separada
+•	El formulario contiene decenas de campos: datos generales, siete campos para OD, siete para OI, tratamiento (select), montura (tipo, marca, modelo, color), coloración (color, unicolor checkbox, degradado %) y observaciones.
+•	Un modal sería demasiado extenso, obligaría a hacer scroll interno y dificultaría la usabilidad.
+•	Una página dedicada permite una mejor distribución en varias secciones, validaciones en tiempo real, manejo de errores y navegación fluida.
+Resumen de orden previo al envío → Modal
+•	Es un paso intermedio de verificación antes de enviar la orden.
+•	Un modal superpuesto al formulario permite al usuario revisar los datos sin perder el contexto del formulario.
+•	Si algo está mal, puede cerrar el modal y corregir fácilmente.
+•	Se muestra un resumen legible con todos los campos ingresados.
+Detalle de orden (cualquier rol) → Página separada
+•	El detalle contiene mucha información: todos los datos ópticos, tratamiento, montura, coloración y observaciones.
+•	Una página permite una visualización clara y estructurada, con posibilidad de incluir secciones o incluso una vista de impresión.
+•	Se puede volver al listado con un botón "Atrás" sin perder el estado de los filtros (si se usa navegación con estado).
+Formulario de creación/edición de usuario → Página separada
+•	Similar al formulario de orden: campos diversos (empresa, email, teléfono, dirección, contraseña temporal).
+•	Mejor en página para evitar modales grandes y permitir validaciones completas (por ejemplo, confirmación de contraseña).
+Confirmación de eliminación de usuario → Modal (diálogo de confirmación)
+•	Es una acción destructiva; el estándar es un modal pequeño con mensaje de advertencia y botones "Cancelar" / "Eliminar".
+•	Evita eliminaciones accidentales.
+Resetear contraseña → Modal o acción directa
+•	Se recomienda un modal de confirmación para evitar acciones accidentales.
+•	Puede incluir un campo para ingresar la nueva contraseña o un botón para generarla automáticamente.
+Filtros en listados → Controles en la misma página
+•	Los filtros (rango de fechas, cliente, estado de sincronización) son parte integral del listado.
+•	Se ubican en la parte superior de la tabla, sin necesidad de modales.
+•	Se incluyen botones "Aplicar filtros" y "Limpiar".
+Gráficos estadísticos → Página dashboard
+•	Los gráficos requieren espacio y contexto, por lo que una página dedicada es lo adecuado.
+•	Se pueden incluir tarjetas de totales y gráficos interactivos.
+________________________________________
+3. Componentes clave a implementar
+A continuación se enumeran los componentes principales que se deben desarrollar, con su propósito y características.
+Layout principal
+•	Sidebar con navegación según rol (íconos + etiquetas).
+•	Header con nombre de usuario, rol y botón de logout.
+•	Área de contenido donde se renderizan las páginas mediante el Outlet de React Router.
+Tabla reutilizable
+•	Soporte para paginación, ordenamiento por columnas.
+•	Columnas configurables según el contexto (ej. para cliente: N° orden, fecha, resumen óptico; para admin: añadir columna de estado de sincronización).
+•	Acciones por fila (ver detalle, editar solo admin).
+•	Debe permitir manejar grandes volúmenes de datos con paginación desde el backend.
+Formularios
+•	Usar React Hook Form con validación (Yup o Zod).
+•	Campos: inputs numéricos, textos, selects, checkboxes.
+•	El formulario de orden debe manejar valores opcionales (solo número de orden, empresa y paciente son obligatorios).
+•	Validación específica: el número de orden debe ser único en todo el sistema (validación asíncrona).
+Modal de resumen de orden
+•	Muestra todos los campos ingresados de forma legible y estructurada.
+•	Botones: "Atrás" (cierra el modal) y "Confirmar envío" (envía la orden y redirige al listado con mensaje de éxito).
+Filtros
+•	Componente con inputs de fecha (desde-hasta).
+•	Select de cliente (para admin y laboratorio).
+•	Select de estado de sincronización (solo admin).
+•	Botón "Aplicar filtros" y "Limpiar".
+Gráficos (Admin Dashboard)
+•	Usar librería como Recharts o Chart.js.
+•	Gráfico de barras: órdenes por mes.
+•	Gráfico de pastel: pendientes vs sincronizadas.
+•	Top 5 clientes por cantidad de órdenes (puede ser una tabla o gráfico de barras horizontal).
+ConfirmModal (modal genérico)
+•	Diálogo de confirmación para acciones destructivas o reset de contraseña.
+•	Recibe mensaje, tipo de acción y callback.
+
+
+ESQUEMA DE LA BASE DE DATOS
+
+-- =====================================================
+-- ESQUEMA DE BASE DE DATOS - PORTAL DE CLIENTES EXTERNOS
+-- PostgreSQL
+-- =====================================================
+
+-- Tipos enumerados
+CREATE TYPE user_role AS ENUM ('CLIENTE_EXTERNO', 'LABORATORIO', 'ADMINISTRADOR');
+CREATE TYPE sync_status AS ENUM ('PENDIENTE', 'SINCRONIZADA');
+
+-- Tabla de usuarios
+CREATE TABLE users (
+    id              BIGSERIAL PRIMARY KEY,
+    username        VARCHAR(100) NOT NULL UNIQUE,
+    password_hash   VARCHAR(255) NOT NULL,
+    email           VARCHAR(255) UNIQUE,
+    role            user_role NOT NULL,
+    company_name    VARCHAR(255),
+    phone           VARCHAR(50),
+    address         TEXT,
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Tabla para la API Key del middleware
+CREATE TABLE api_keys (
+    id              SERIAL PRIMARY KEY,
+    key_value       VARCHAR(255) NOT NULL UNIQUE,
+    description     VARCHAR(255),
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Tabla de órdenes
+CREATE TABLE orders (
+    id                          BIGSERIAL PRIMARY KEY,
+    external_id                 UUID UNIQUE DEFAULT gen_random_uuid(),
+    order_number                VARCHAR(100) NOT NULL UNIQUE,
+    company                     VARCHAR(255) NOT NULL,
+    patient                     VARCHAR(255) NOT NULL,
+
+    -- Fórmula óptica Ojo Derecho (OD)
+    od_sphere                   NUMERIC(6,2),
+    od_cylinder                 NUMERIC(6,2),
+    od_axis                     NUMERIC(6,2),
+    od_addition                 NUMERIC(6,2),
+    od_dnp                      NUMERIC(6,2),
+    od_height                   NUMERIC(6,2),
+    od_product_code             VARCHAR(100),
+
+    -- Fórmula óptica Ojo Izquierdo (OI)
+    oi_sphere                   NUMERIC(6,2),
+    oi_cylinder                 NUMERIC(6,2),
+    oi_axis                     NUMERIC(6,2),
+    oi_addition                 NUMERIC(6,2),
+    oi_dnp                      NUMERIC(6,2),
+    oi_height                   NUMERIC(6,2),
+    oi_product_code             VARCHAR(100),
+
+    -- Tratamiento (selección única)
+    treatment                   VARCHAR(50)
+        CHECK (treatment IN ('ECO (AR Verde)', 'OCEAN (AR Azul)', 'SOLERX SILVER', 'SOLERX BLUE')),
+
+    -- Tipo de montura (selección única)
+    mount_type                  VARCHAR(50)
+        CHECK (mount_type IN ('METAL ARO COMPLETO', 'METAL SEMI-AEREA', 'PASTA ARO COMPLETO', 'PASTA SEMI-AEREA', 'AL AIRE')),
+    mount_brand                 VARCHAR(100),
+    mount_model                 VARCHAR(100),
+    mount_color                 VARCHAR(100),
+
+    -- Coloración
+    coloration_color            VARCHAR(100),
+    coloration_unicolor         BOOLEAN DEFAULT FALSE,
+    coloration_degradado_percent NUMERIC(5,2),
+
+    observations                TEXT,
+
+    -- Sincronización
+    sync_status                 sync_status NOT NULL DEFAULT 'PENDIENTE',
+    synced_at                   TIMESTAMPTZ,
+
+    -- Auditoría / propiedad
+    created_by                  BIGINT REFERENCES users(id),
+    created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Índices recomendados
+CREATE INDEX idx_orders_created_at   ON orders (created_at DESC);
+CREATE INDEX idx_orders_company      ON orders (company);
+CREATE INDEX idx_orders_sync_status  ON orders (sync_status);
+CREATE INDEX idx_orders_created_by   ON orders (created_by);
+
+ANEXO: ACLARACIONES DE PUNTOS CRITICOS - DECISIONES v1
+Reglas base de este anexo:
+- Construir la PLATAFORMA primero. No se asume ningun comportamiento interno del middleware (reintentos,
+  tiempos de poll, deduplicacion, ni el resultado de su procesamiento).
+- Formateo y envio de datos: el unico mecanismo definido es el endpoint GET /api/external-orders/pending
+  (RF-35 a RF-38), que entrega el JSON canonico de las ordenes pendientes cuando el middleware lo consulta
+  (modelo PULL). El portal nunca inicia comunicacion (RF-42).
+- El middleware confirma con PUT /api/external-orders/:externalId/sync (RF-49) cuando corresponde.
+- Este anexo NO reemplaza los RF existentes: aclara los puntos criticos y fija las decisiones de v1.
+
+PC-1. Estados de sincronizacion y riesgo de doble entrega (aclara RF-44, RF-45, RF-46 y RF-53)
+- Se mantienen SOLO dos estados: 'Pendiente de sincronizacion' y 'Sincronizada' (RF-53). La Opcion B de
+  RF-45 queda descartada (no existe estado 'En proceso' en v1). La Opcion A de RF-46 es la unica via de
+  sincronizacion: el middleware confirma con PUT /sync.
+- El GET /pending NO cambia el estado de las ordenes al entregarlas. Entregar una orden no la saca del
+  listado de pendientes: una orden deja de entregarse SOLO cuando el middleware la confirma con PUT /sync.
+- Consecuencia aceptada y documentada (entrega tipo 'al menos una vez'): si el middleware recibe una
+  orden pero nunca la confirma, esa orden se seguira entregando en los proximos polls. El portal no puede
+  distinguir 'el middleware no la proceso' de 'el middleware la proceso pero no confirmo' (RF-44), y no
+  asume ninguna de las dos situaciones.
+- Medidas que toma el PORTAL (no dependen del middleware):
+  a) PUT /sync idempotente: confirmar una orden ya sincronizada responde HTTP 200 sin error ni cambio de
+     estado (una confirmacion repetida no rompe nada en el portal).
+  b) El portal registra created_at (creacion de la orden) y synced_at (momento de la confirmacion).
+  c) El listado maestro del administrador (RF-29/RF-31) muestra ademas la antiguedad 'pendiente desde',
+     para detectar ordenes estancadas. Detectar/escalar una orden estancada al equipo del middleware es
+     un procedimiento operativo, no una funcion del sistema en v1.
+- Fuera de alcance v1: garantizar entrega unica (exactly-once). Si el negocio lo exige mas adelante, se
+  evaluara un estado intermedio (tipo 'EN_PROCESO', reclamando la orden al entregarla) junto con
+  paginacion por cursor; eso implica acordar un nuevo contrato con el middleware y NO se disena ahora.
+
+PC-2. Paginacion del endpoint de pendientes sin saltos (aclara RF-37)
+- El GET /pending ordena SIEMPRE por created_at ASC y id ASC (las ordenes mas antiguas primero, FIFO),
+  para que el orden de entrega sea estable entre peticiones.
+- El GET es de solo lectura (ver PC-1): no elimina ni marca ordenes al entregarlas. El conjunto de
+  'pendientes' solo cambia cuando el middleware confirma syncs (PUT /sync).
+- Con paginacion limit/offset, se producen saltos si el conjunto cambia mientras se pagina (cada sync
+  quita ordenes y el offset se corre). Para que el contrato sea seguro, el patron de consumo soportado en
+  v1 es uno de estos dos:
+  1) Un ciclo de sincronizacion = UNA sola peticion (offset=0 y limit = tamano del lote deseado), o
+  2) Varias peticiones secuenciales (offset=0, limit, 2*limit, ...) hasta cubrir el 'total' devuelto, y
+     recien DESPUES de recorrer todas las paginas se confirman los syncs de ese ciclo.
+  Regla: no intercalar GET y PUT /sync dentro del mismo ciclo (cada confirmacion mueve el offset y se
+  saltan ordenes o se entregan repetidas).
+- Esta regla forma parte del CONTRATO del endpoint (documenta como debe consumirse); no es una suposicion
+  sobre la implementacion interna del middleware.
+- Indice recomendado para el endpoint de pendientes: indice compuesto (sync_status, created_at, id), que
+  evita ordenar toda la tabla en cada consulta.
+
+PC-3. Ordenes que el middleware no puede procesar (aclara RF-44; no hay 'dead letter' en v1)
+- El portal no recibe el resultado del procesamiento del middleware (RF-44) y no asume como reacciona el
+  middleware ante una orden que no puede procesar. Por eso NO se modela un estado de error/rechazo en v1.
+- Comportamiento del portal ante una orden que queda sin confirmar: permanece 'Pendiente de
+  sincronizacion' (se seguira entregando, ver PC-1) y queda visible en el listado del administrador con
+  su antiguedad ('pendiente desde'). Esa visibilidad es la senal para escalar manualmente al equipo del
+  middleware.
+- Si al trabajar la integracion surge la necesidad de un estado de error o de retirar una orden del flujo,
+  se agregara como nuevo requerimiento; hoy no se disena para no asumir el comportamiento del middleware.
+
+PC-4. Contrato JSON vs. datos que el portal realmente almacena (aclara RF-38 y RF-48)
+El portal construye el JSON de respuesta UNICAMENTE con datos que puede llenar con certeza:
+- Del formulario / base de datos: number (= Numero de Orden del cliente), date (fecha de creacion de la
+  orden), customer {company, patient}, opticalDataOD, opticalDataOI, treatment, mount {type, brand,
+  model, color}, coloration y observations.
+- Constantes del portal: orderFromSupplier = true y status = 'CONFIRMED'. Son valores fijos para toda
+  orden creada en el portal.
+- Campos del ejemplo RF-48 que el portal NO puede poblar y que NO se entregan en v1 (su valor solo puede
+  originarse en el middleware; se retoman cuando se defina la integracion con su fuente):
+  a) warehouse {id, name}: el portal no administra bodegas/sucursales. El mapeo empresa -> bodega lo
+     conoce el middleware, o se agrega como modulo de datos maestros en el futuro.
+  b) issuedOrderId e issuedInvoiceId: los genera el pipeline del middleware al procesar. Devolverlos al
+     portal exigiria que el PUT /sync enviara datos de vuelta (write-back); mejora futura, fuera de v1.
+  c) items[]: la descripcion (ej. 'Lente Progresivo') proviene del catalogo de productos del middleware.
+     En v1 el portal puede derivar, como maximo: {code: codigo de producto OD/OI si fue cargado,
+     quantity: 1}. El enriquecimiento (descripcion, etc.) es responsabilidad del middleware.
+- Fechas: se almacenan como TIMESTAMPTZ (UTC) y 'date' se entrega en ISO 8601 con offset horario (ej.:
+  2026-08-28T10:30:00-03:00). Si la integracion requiere UTC puro, se acuerda al definir el contrato.
+- El ejemplo de RF-48 se conserva como formato objetivo de la integracion, con la salvedad de que los
+  campos listados arriba se completaran recien cuando se acuerde con el middleware quien los provee.
+
+PC-5. Identificador unico de la orden (aclara RF-48, RF-49, RF-50 y el esquema de base de datos)
+- La orden tiene DOS identificadores con roles distintos:
+  a) order_number (campo 'Numero de Orden' del formulario, RF-08): identificador de negocio que asigna el
+     cliente; es unico en el sistema (constraint UNIQUE) y es el que se muestra en las pantallas.
+  b) external_id: UUID generado por el portal (columna orders.external_id con DEFAULT gen_random_uuid()).
+     Es el identificador tecnico/canonico de la orden para TODA la integracion: se entrega en el JSON
+     como 'externalId' y es el valor que el middleware debe usar SIEMPRE en el path del PUT /sync.
+- Aclaracion sobre el ejemplo de RF-48: ahi 'externalId' aparece como '98765' (parece un numero interno,
+  no un UUID). Se aclara que externalId SIEMPRE es el UUID del portal. Si el middleware necesita exponer
+  un codigo propio adicional, se agrega como campo nuevo acordado; no se reutiliza externalId.
+- El PUT /sync (RF-49/RF-50) busca la orden por external_id (UUID). order_number no se usa en la
+  integracion.
+
+CORRECCIONES MENORES AL DOCUMENTO (no cambian requerimientos; solo redaccion y consistencia)
+- RF-45: la Opcion B queda sin efecto (ver PC-1). 'En proceso' no debe usarse como estado.
+- Frontend, componentes: la accion 'ver detalle, editar solo admin' corresponde a la GESTION DE USUARIOS
+  (administrador). Las ordenes jamas se editan para ningun rol (RF-17, RF-22, RF-32).
+- Valores de montura: normalizar la escritura (ej. 'SEMI-AEREA' / 'AL AIRE') en el formulario, en el CHECK
+  de la base de datos y en el JSON, para que la cadena sea identica en las tres capas y no se rompan los
+  filtros o comparaciones.
+- Tabla api_keys: RF-40 define una unica API Key estatica. En v1 se utiliza una sola fila activa; la tabla
+  admite varias filas para permitir rotacion futura, pero esa funcionalidad no se implementa hoy.
+- RF-48: el valor de 'externalId' se interpreta segun PC-5.
+
+DECISIONES DE NEGOCIO Y SEGURIDAD - RESUELTAS (v1.1)
+Actualizacion del anexo: las decisiones abiertas del bloque anterior quedan CERRADAS (DEC-1 a DEC-6). Si
+alguna se modifica, se agrega una entrada nueva fechada en este anexo; no se edita el cuerpo de los RF.
+
+- DEC-1 (unicidad del Numero de Orden / RF-10): se mantiene la unicidad GLOBAL (order_number UNIQUE en BD)
+  para v1, tal como esta definida en el esquema. Queda registrada para evaluacion operativa: si en uso real
+  dos clientes usan el mismo correlativo interno y se bloquean al cargar, se evaluara migrar a unicidad por
+  empresa (empresa + order_number). No se implementa ningun cambio ahora.
+- DEC-2 (credenciales y alta de usuarios / RF-24): el administrador asigna SIEMPRE un username unico y
+  OBLIGATORIO al dar de alta a cualquier usuario (el esquema ya lo define NOT NULL UNIQUE; ahora tambien es
+  requerido en el formulario de alta). El login (RF-01) se realiza con username + contrasena. Correo
+  electronico y telefono se guardan unicamente como datos de contacto internos: no se usan para
+  autenticacion ni para notificaciones.
+- DEC-3 (normalizacion de Empresa / RF-08): el campo 'Empresa' del formulario de nueva orden se AUTOPOBLA
+  desde la cuenta del usuario autenticado (users.company_name) en modo SOLO LECTURA; el cliente no puede
+  tipearlo. La orden conserva una copia (snapshot) del valor al momento de la creacion, de modo que un
+  cambio posterior de company_name no altera ordenes historicas. Esto garantiza valores consistentes para
+  los filtros 'por cliente' (RF-20/RF-30) y las estadisticas del administrador (RF-33).
+- DEC-4 (baja de usuarios / RF-23): se elimina el borrado fisico de usuarios (no existe endpoint DELETE).
+  La 'baja' de un usuario es exclusivamente la desactivacion logica (is_active = false), preservando la
+  integridad referencial con orders.created_by y el historial. En la interfaz, la accion 'eliminar' se
+  reemplaza por 'dar de baja / reactivar'.
+- DEC-5 (codigos de producto / RF-08): od_product_code y oi_product_code se mantienen como texto libre, sin
+  validacion contra catalogo en v1. El enriquecimiento (descripcion, etc.) es responsabilidad del middleware
+  (ver PC-4).
+- DEC-6 (seguridad: cambio de contrasena en primer acceso / X7.2): toda cuenta creada por el administrador
+  con contrasena temporal, y toda contrasena restablecida por el administrador (RF-26), queda marcada para
+  cambio obligatorio en el primer inicio de sesion.
+  Delta de esquema requerido: nueva columna users.must_change_password BOOLEAN NOT NULL DEFAULT TRUE.
+  Reglas de comportamiento:
+  a) Al crear un usuario o al resetear su contrasena, el flag queda en TRUE.
+  b) Al iniciar sesion con el flag en TRUE, el usuario puede ejecutar UNICAMENTE el cambio de contrasena; el
+     resto de los recursos autenticados responde 403 hasta completarlo.
+  c) Al completar el cambio, el flag pasa a FALSE y el usuario obtiene acceso normal con su nueva contrasena.
+
+ANEXO: PILARES TECNICOS Y DE INFRAESTRUCTURA (v1.2)
+(Actualizacion del anexo: define la arquitectura modular del codigo, la containerizacion y el despliegue
+de produccion. Complementa el stack del documento sin modificar RF. Reglas etiquetadas: ARQ-1 (arquitectura
+modular), ARQ-2 (containerizacion), ARQ-3 (despliegue/dominio/SSL). Implementacion: Fase 1 (B1.1/B1.2/B1.4)
+y Fase 8 (I8.1 a I8.7) del PLAN_DE_DESARROLLO.md.)
+
+ARQ-1. Arquitectura modular por caracteristicas (Feature-based Modular Architecture)
+- Backend (Node/Express): el codigo se organiza en MODULOS por dominio/caracteristica bajo
+  /backend/src/modules/<modulo>/. Cada modulo encapsula TODO lo propio:
+  a) routes (definicion de rutas del modulo),
+  b) controllers (manejo HTTP: entrada/salida; delegan en servicios),
+  c) services (logica de negocio),
+  d) dto/schemas (validacion express-validator y esquemas de entrada/salida),
+  e) tests unitarios junto al modulo.
+- Modulos previstos en v1: auth (login, cambio de contrasena obligatorio, middlewares), users (gestion de
+  usuarios del administrador, RF-23 a RF-27), orders (dominio de ordenes, RF-05 a RF-17, incluye company
+  autopoblada por DEC-3), external-orders (contrato PULL del middleware: GET /pending, PUT /sync y
+  serializacion canonica; RF-35 a RF-56 y reglas R1-R5) y reports (estadisticas y exportacion, RF-33/RF-34).
+- Capa transversal compartida (/backend/src/core): configuracion (env), cliente Prisma, manejo de errores,
+  logger (morgan), middlewares globales (auth, roles, api-key, errores) y utilidades. Cada modulo de negocio
+  expone su router montado en /api/<modulo> y sus servicios publicos; los modulos de negocio NO importan
+  implementaciones internas de otros modulos de negocio (consumen sus servicios publicos), manteniendo bajo
+  acoplamiento: un cambio dentro de un modulo no debe forzar cambios en los demas.
+- Frontend (React/Vite): mismo criterio bajo /frontend/src/features/<feature>/. Cada feature contiene pages,
+  components, hooks, api (cliente HTTP de la feature), types y tests. Features previstas: auth (login y
+  cambio de contrasena obligatorio), orders-client (dashboard, formulario, historial y detalle del cliente),
+  orders-lab (listado del laboratorio), admin-users, admin-orders, admin-stats. Capas transversales:
+  /frontend/src/app (layout, rutas y guards por rol), /frontend/src/shared (componentes UI reutilizables:
+  tabla, modales, filtros, confirm, graficos), /frontend/src/core (cliente HTTP con manejo de 401 y
+  sesion/token).
+- Estructura de referencia de la raiz del repositorio:
+  /backend/src/modules/<modulo>/{routes,controllers,services,dto,tests}
+  /backend/src/core
+  /frontend/src/features/<feature>/{pages,components,hooks,api,types,tests}
+  /frontend/src/app | /frontend/src/shared | /frontend/src/core
+  /infra (docker, compose, nginx, certificados y scripts de despliegue)
+  Documentacion (TXT, AGENTS.md, PLAN) en la raiz.
+
+ARQ-2. Containerizacion Docker con paridad local/produccion
+- Versiones unicas y fijas: Node 20 LTS y PostgreSQL 16 en desarrollo, CI y produccion (mismas imagenes
+  base con tag fijo). Todo el desarrollo local se ejecuta DENTRO de contenedores (no se requiere Node/npm
+  en el host; solo Docker y git).
+- Dockerfiles multi-stage por servicio:
+  a) Backend: stage dev (base node:20, nodemon con hot-reload y bind-mount del codigo) y stage prod
+     (instalacion de dependencias -> imagen final minima de runtime que arranca la API).
+  b) Frontend: stage build (node:20 compila el bundle estatico con Vite) y stage prod: el bundle se sirve
+     como contenido estatico (via el proxy inverso Nginx de produccion; no por Node).
+- docker-compose.yml (desarrollo): servicios db (postgres:16 con volumen), api (backend con bind-mount y
+  hot-reload) y frontend (dev server de Vite con proxy /api hacia el backend), todos con healthcheck.
+  Comandos de referencia: docker compose up; docker compose exec api npm test.
+- docker-compose.prod.yml (produccion, se materializa en la Fase 8): servicios api, frontend (estatico),
+  db, proxy (Nginx) y red interna de Docker; al exterior solo se exponen los puertos 80/443 a traves del
+  proxy. Secretos por variables de entorno; nunca en imagenes ni en el repositorio.
+
+ARQ-3. Despliegue, dominio y SSL/HTTPS (produccion)
+- Topologia v1: un servidor VPS con Docker Engine; contenedores api, frontend (estatico), db y proxy
+  inverso. El proxy inverso (Nginx, elegido por defecto) es el UNICO punto de entrada publico:
+  a) Termina SSL/TLS (HTTPS) para el dominio oficial.
+  b) Redirige HTTP -> HTTPS.
+  c) Enruta https://<dominio>/ hacia el frontend estatico y https://<dominio>/api/ hacia el backend; los
+     endpoints del middleware (/api/external-orders/...) quedan disponibles solo por HTTPS via el proxy.
+- Dominio oficial: se asocia el dominio real del proyecto al servidor (registro DNS A/AAAA apuntando a la
+  IP publica del VPS). El dominio se define y verifica ANTES de emitir certificados; <dominio> es un
+  placeholder que se reemplaza por el dominio oficial en toda configuracion.
+- SSL/TLS: certificados validos de autoridad publica Let's Encrypt emitidos y renovados automaticamente con
+  Certbot integrado al Nginx; renovacion programada (timer/cron) y verificacion por dry-run. NO se usan
+  certificados autofirmados en produccion: se evitan los avisos de 'Sitio no seguro' y los bloqueos de
+  navegadores/clientes por firmas no confiables.
+- Seguridad de red: firewall del servidor con 22 (SSH de administracion), 80 y 443; la base de datos corre
+  en la red interna de Docker sin puerto publico; healthchecks por servicio; logs accesibles; backups
+  periodicos de PostgreSQL fuera del contenedor.
+- Alternativas admitidas para el futuro (no implementadas en v1): Caddy o Traefik como proxy con TLS
+  automatico, y Cloudflare como CDN/proxy frontal. La configuracion oficial del proyecto es Nginx + Certbot.
+
+DECISION TECNICA - TYPESCRIPT (v1.3)
+(Actualizacion del anexo. Decision de implementacion aprobada para la Fase 1: backend y frontend se
+desarrollan en TypeScript.)
+- Implicaciones: tsconfig por paquete (backend y frontend); desarrollo con tsx (watch); build de
+  produccion con tsc (backend) y Vite (frontend); pruebas con ts-jest + Supertest; Prisma genera los tipos
+  desde el schema (schema.prisma es la unica fuente del modelo de datos).
+- No modifica RF, contratos JSON ni decisiones DEC-1 a DEC-6 / ARQ-1 a ARQ-3.
+
+
+
