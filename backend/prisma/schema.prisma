@@ -1,0 +1,119 @@
+// ============================================================
+// Prisma schema - Portal de Clientes Externos (Fase 1, B1.3)
+// Espejo del esquema SQL de INFORMACION DEL PROYECTO.txt MAS el
+// delta del anexo v1.1 (DEC-6): users.must_change_password.
+// Enums mapeados a user_role / sync_status; columnas snake_case.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENTE_EXTERNO
+  LABORATORIO
+  ADMINISTRADOR
+
+  @@map("user_role")
+}
+
+enum SyncStatus {
+  PENDIENTE
+  SINCRONIZADA
+
+  @@map("sync_status")
+}
+
+model User {
+  id                 BigInt   @id @default(autoincrement())
+  username           String   @unique @db.VarChar(100)
+  passwordHash       String   @map("password_hash") @db.VarChar(255)
+  email              String?  @unique @db.VarChar(255)
+  role               UserRole
+  companyName        String?  @map("company_name") @db.VarChar(255)
+  phone              String?  @db.VarChar(50)
+  address            String?  @db.Text
+  isActive           Boolean  @default(true) @map("is_active")
+  // Delta anexo v1.1 (DEC-6): cambio obligatorio de contrasena en primer acceso
+  mustChangePassword Boolean  @default(true) @map("must_change_password")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  orders             Order[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id          Int      @id @default(autoincrement())
+  keyValue    String   @unique @map("key_value") @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("api_keys")
+}
+
+model Order {
+  id                          BigInt    @id @default(autoincrement())
+  externalId                  String    @unique @default(uuid()) @map("external_id") @db.Uuid
+  orderNumber                 String    @unique @map("order_number") @db.VarChar(100)
+  company                     String    @db.VarChar(255)
+  patient                     String    @db.VarChar(255)
+
+  // Formula optica Ojo Derecho (OD)
+  odSphere                    Decimal?  @map("od_sphere") @db.Decimal(6, 2)
+  odCylinder                  Decimal?  @map("od_cylinder") @db.Decimal(6, 2)
+  odAxis                      Decimal?  @map("od_axis") @db.Decimal(6, 2)
+  odAddition                  Decimal?  @map("od_addition") @db.Decimal(6, 2)
+  odDnp                       Decimal?  @map("od_dnp") @db.Decimal(6, 2)
+  odHeight                    Decimal?  @map("od_height") @db.Decimal(6, 2)
+  odProductCode               String?   @map("od_product_code") @db.VarChar(100)
+
+  // Formula optica Ojo Izquierdo (OI)
+  oiSphere                    Decimal?  @map("oi_sphere") @db.Decimal(6, 2)
+  oiCylinder                  Decimal?  @map("oi_cylinder") @db.Decimal(6, 2)
+  oiAxis                      Decimal?  @map("oi_axis") @db.Decimal(6, 2)
+  oiAddition                  Decimal?  @map("oi_addition") @db.Decimal(6, 2)
+  oiDnp                       Decimal?  @map("oi_dnp") @db.Decimal(6, 2)
+  oiHeight                    Decimal?  @map("oi_height") @db.Decimal(6, 2)
+  oiProductCode               String?   @map("oi_product_code") @db.VarChar(100)
+
+  // Tratamiento (seleccion unica; CHECK agregado en la migracion)
+  treatment                   String?   @db.VarChar(50)
+  // Tipo de montura (seleccion unica; CHECK agregado en la migracion)
+  mountType                   String?   @map("mount_type") @db.VarChar(50)
+  mountBrand                  String?   @map("mount_brand") @db.VarChar(100)
+  mountModel                  String?   @map("mount_model") @db.VarChar(100)
+  mountColor                  String?   @map("mount_color") @db.VarChar(100)
+
+  // Coloracion
+  colorationColor             String?   @map("coloration_color") @db.VarChar(100)
+  colorationUnicolor          Boolean   @default(false) @map("coloration_unicolor")
+  colorationDegradadoPercent  Decimal?  @map("coloration_degradado_percent") @db.Decimal(5, 2)
+
+  observations                String?   @db.Text
+
+  // Sincronizacion (solo 2 estados en v1, regla R2)
+  syncStatus                  SyncStatus @default(PENDIENTE) @map("sync_status")
+  syncedAt                    DateTime?  @map("synced_at") @db.Timestamptz(6)
+
+  // Auditoria / propiedad
+  createdBy                   BigInt?
+  creator                     User?      @relation(fields: [createdBy], references: [id], map: "created_by")
+  createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([company], map: "idx_orders_company")
+  @@index([syncStatus], map: "idx_orders_sync_status")
+  @@index([createdBy], map: "idx_orders_created_by")
+  @@index([createdAt(sort: Desc)], map: "idx_orders_created_at")
+  // Indice compuesto para el endpoint de pendientes (R3 / PC-2)
+  @@index([syncStatus, createdAt, id], map: "idx_orders_sync_status_created_at_id")
+  @@map("orders")
+}

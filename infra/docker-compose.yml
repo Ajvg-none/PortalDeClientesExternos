@@ -1,0 +1,76 @@
+# ============================================================
+# docker-compose - ENTORNO DE DESARROLLO (ARQ-2, anexo v1.2)
+# Orquesta db (PostgreSQL 16), api (Node 20, hot-reload) y
+# frontend (Vite dev). Todo el desarrollo corre en contenedores.
+# Uso: docker compose -f infra/docker-compose.yml up --build
+# ============================================================
+name: portal-clientes-externos
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: portal-db
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Crea la BD de pruebas portal_test al inicializar el volumen
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      target: dev
+    container_name: portal-api
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://portal:portal@db:5432/portal?schema=public
+      TEST_DATABASE_URL: postgresql://portal:portal@db:5432/portal_test?schema=public
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../backend:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ../frontend
+      target: dev
+    container_name: portal-frontend
+    environment:
+      VITE_API_PROXY_TARGET: http://api:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
