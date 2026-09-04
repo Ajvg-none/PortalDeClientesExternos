@@ -1,7 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
-import { orderToDetail, orderToListItem } from './orders.mapper';
+import {
+  orderToAdminDetail,
+  orderToAdminListItem,
+  orderToDetail,
+  orderToListItem,
+} from './orders.mapper';
 
 /**
  * Servicios del dominio de ordenes del cliente (Fase 3, RF-05…RF-17).
@@ -43,9 +48,14 @@ export interface CreateOrderInput {
 export interface ListOrdersFilters {
   from?: string;
   to?: string;
+  company?: string;
+  syncStatus?: 'PENDIENTE' | 'SINCRONIZADA';
   limit?: number;
   offset?: number;
 }
+
+/** M4.6: roles que visualizan TODAS las ordenes (solo lectura). */
+export type ViewRole = 'LABORATORIO' | 'ADMINISTRADOR';
 
 function cleanText(value: unknown): string | null {
   if (value === undefined || value === null) return null;
@@ -173,4 +183,48 @@ export async function getOwnOrder(userId: bigint, orderId: bigint) {
     throw new ApiError(404, 'NOT_FOUND', 'Orden no encontrada');
   }
   return orderToDetail(order);
+}
+
+/**
+ * M4.7/RF-18…21 y RF-28…31 - Listado GLOBAL de solo lectura para
+ * LABORATORIO (sin estado) y ADMINISTRADOR (con estado + pendiente desde).
+ * Filtros: rango de fechas, empresa (cliente) y, para admin, estado de sync.
+ */
+export async function listAllOrders(role: ViewRole, filters: ListOrdersFilters) {
+  const limit = filters.limit ?? 20;
+  const offset = filters.offset ?? 0;
+
+  const where: Prisma.OrderWhereInput = {};
+  const range: { createdAt?: { gte?: Date; lte?: Date } } = {};
+  if (filters.from) range.createdAt = { ...range.createdAt, gte: dateToRange(filters.from).start };
+  if (filters.to) range.createdAt = { ...range.createdAt, lte: dateToRange(filters.to).end };
+  if (range.createdAt) where.createdAt = range.createdAt;
+  if (filters.company?.trim()) {
+    where.company = { contains: filters.company.trim(), mode: 'insensitive' };
+  }
+  if (role === 'ADMINISTRADOR' && filters.syncStatus) {
+    where.syncStatus = filters.syncStatus;
+  }
+
+  const [total, rows] = await Promise.all([
+    prisma.order.count({ where }),
+    prisma.order.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: offset,
+      take: limit,
+    }),
+  ]);
+  const data =
+    role === 'ADMINISTRADOR' ? rows.map((r) => orderToAdminListItem(r)) : rows.map(orderToListItem);
+  return { data, total, limit, offset };
+}
+
+/** RF-21/RF-31 - Detalle global de una orden (lab sin estado; admin con estado). */
+export async function getAnyOrder(role: ViewRole, orderId: bigint) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) {
+    throw new ApiError(404, 'NOT_FOUND', 'Orden no encontrada');
+  }
+  return role === 'ADMINISTRADOR' ? orderToAdminDetail(order) : orderToDetail(order);
 }

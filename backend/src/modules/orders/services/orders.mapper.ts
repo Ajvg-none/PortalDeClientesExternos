@@ -74,7 +74,7 @@ export function orderToDetail(order: OrderRow) {
   };
 }
 
-/** RF-05/RF-19 - Item compacto para listados. */
+/** RF-05/RF-19 - Item compacto para listados (cliente y laboratorio: sin estado). */
 export function orderToListItem(order: OrderRow) {
   return {
     id: String(order.id),
@@ -83,5 +83,35 @@ export function orderToListItem(order: OrderRow) {
     patient: order.patient,
     createdAt: order.createdAt.toISOString(),
     summary: opticalSummary(order),
+  };
+}
+
+/**
+ * M4.6 - Antiguedad "pendiente desde" (PC-1c), en minutos enteros desde la
+ * creacion. Solo tiene sentido mientras la orden siga PENDIENTE.
+ */
+export function pendingSinceMinutes(createdAt: Date, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - createdAt.getTime()) / 60_000));
+}
+
+/** RF-29/M4.7 - Item del listado maestro del ADMINISTRADOR (con estado). */
+export function orderToAdminListItem(order: OrderRow, now?: number) {
+  return {
+    ...orderToListItem(order),
+    syncStatus: order.syncStatus,
+    syncedAt: order.syncedAt ? order.syncedAt.toISOString() : null,
+    pendingSinceMinutes:
+      order.syncStatus === 'PENDIENTE' ? pendingSinceMinutes(order.createdAt, now) : null,
+  };
+}
+
+/** RF-31/M4.7 - Detalle del ADMINISTRADOR: igual que el detalle completo + estado. */
+export function orderToAdminDetail(order: OrderRow, now?: number) {
+  return {
+    ...orderToDetail(order),
+    syncStatus: order.syncStatus,
+    syncedAt: order.syncedAt ? order.syncedAt.toISOString() : null,
+    pendingSinceMinutes:
+      order.syncStatus === 'PENDIENTE' ? pendingSinceMinutes(order.createdAt, now) : null,
   };
 }

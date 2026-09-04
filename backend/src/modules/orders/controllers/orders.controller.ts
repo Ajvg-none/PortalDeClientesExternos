@@ -2,7 +2,9 @@ import type { Request, Response } from 'express';
 import { asyncHandler } from '../../../core/async';
 import {
   createOrder,
+  getAnyOrder,
   getOwnOrder,
+  listAllOrders,
   listOwnOrders,
   type CreateOrderInput,
   type ListOrdersFilters,
@@ -12,26 +14,46 @@ function bodyAs(input: Request): CreateOrderInput {
   return input.body as CreateOrderInput;
 }
 
-/** O3.3 - POST /api/orders */
+function filtersOf(req: Request): ListOrdersFilters {
+  return {
+    from: (req.query.from as string | undefined) ?? undefined,
+    to: (req.query.to as string | undefined) ?? undefined,
+    company: (req.query.company as string | undefined) ?? undefined,
+    syncStatus: (req.query.syncStatus as 'PENDIENTE' | 'SINCRONIZADA' | undefined) ?? undefined,
+    limit: req.query.limit !== undefined ? Number(req.query.limit) : undefined,
+    offset: req.query.offset !== undefined ? Number(req.query.offset) : undefined,
+  };
+}
+
+/** O3.3 - POST /api/orders (solo CLIENTE_EXTERNO) */
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const detail = await createOrder(req.auth!.userId, bodyAs(req));
   res.status(201).json(detail);
 });
 
-/** O3.5 - GET /api/orders?from=&to=&limit=&offset= */
-export const listMine = asyncHandler(async (req: Request, res: Response) => {
-  const filters: ListOrdersFilters = {
-    from: (req.query.from as string | undefined) ?? undefined,
-    to: (req.query.to as string | undefined) ?? undefined,
-    limit: req.query.limit !== undefined ? Number(req.query.limit) : undefined,
-    offset: req.query.offset !== undefined ? Number(req.query.offset) : undefined,
-  };
-  const result = await listOwnOrders(req.auth!.userId, filters);
+/**
+ * O3.5 / M4.7 - GET /api/orders segun rol:
+ * CLIENTE_EXTERNO -> su historial; LABORATORIO/ADMINISTRADOR -> todas
+ * (lab sin estado; admin con estado + "pendiente desde").
+ */
+export const listByRole = asyncHandler(async (req: Request, res: Response) => {
+  const role = req.auth!.role;
+  if (role === 'CLIENTE_EXTERNO') {
+    const result = await listOwnOrders(req.auth!.userId, filtersOf(req));
+    res.json(result);
+    return;
+  }
+  const result = await listAllOrders(role, filtersOf(req));
   res.json(result);
 });
 
-/** RF-16 - GET /api/orders/:id (solo del dueno) */
-export const getMineById = asyncHandler(async (req: Request, res: Response) => {
-  const detail = await getOwnOrder(req.auth!.userId, BigInt(req.params.id));
-  res.json(detail);
+/** RF-16 / RF-21 / RF-31 - GET /api/orders/:id segun rol (cliente: solo suyas). */
+export const getByRole = asyncHandler(async (req: Request, res: Response) => {
+  const role = req.auth!.role;
+  const id = BigInt(req.params.id);
+  if (role === 'CLIENTE_EXTERNO') {
+    res.json(await getOwnOrder(req.auth!.userId, id));
+    return;
+  }
+  res.json(await getAnyOrder(role, id));
 });

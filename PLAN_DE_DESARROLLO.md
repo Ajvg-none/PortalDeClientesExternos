@@ -189,30 +189,30 @@ tests, suite F3 en verde.
 Cubre RF-35…RF-56 y las reglas R1–R5 del anexo. Depende de Fase 3 (usa órdenes existentes). Es la fase de
 contrato: no se asume nada del middleware (R1).
 
-- [ ] **M4.1 Credencial de integración.** Semilla/gestión de la API Key única y estática (RF-40) y middleware
+- [x] **M4.1 Credencial de integración.** Semilla/gestión de la API Key única y estática (RF-40) y middleware
       que exige header `X-API-Key` (RF-39/41). Criterio: prueba unitaria del middleware verifica 401 sin
       header, 401 con clave inválida/inactiva y 200 con la clave activa.
-- [ ] **M4.2 `GET /api/external-orders/pending` — selección y orden.** Devuelve **solo** órdenes
+- [x] **M4.2 `GET /api/external-orders/pending` — selección y orden.** Devuelve **solo** órdenes
       `PENDIENTE`, ordenadas `created_at ASC, id ASC` (FIFO, R3). Criterio: prueba de integración con
       dataset mixto (pendientes y sincronizadas, fechas desordenadas) verifica contenido y orden exactos.
-- [ ] **M4.3 `GET /api/external-orders/pending` — paginación `limit`/`offset` + `total` (RF-37).**
+- [x] **M4.3 `GET /api/external-orders/pending` — paginación `limit`/`offset` + `total` (RF-37).**
       Criterio: prueba unitaria del servicio verifica páginas estables cuando **no** se intercalan
       confirmaciones (patrón de contrato R3) y que el endpoint **no modifica** ningún estado al entregar (R2).
-- [ ] **M4.4 Serialización canónica (RF-38, R4, R5).** Mapeo orden→JSON: `number=order_number`,
+- [x] **M4.4 Serialización canónica (RF-38, R4, R5).** Mapeo orden→JSON: `number=order_number`,
       `externalId=external_id (UUID)`, `date` ISO 8601 con offset, datos ópticos, tratamiento/montura/
       coloración/observaciones + constantes `orderFromSupplier:true`, `status:"CONFIRMED"`. **Sin**
       `warehouse`, `issuedOrderId/issuedInvoiceId` ni `items[]`. Criterio: prueba unitaria del mapeador
       verifica un JSON idéntico al esperado (snapshot) para una orden con todos los campos y otra con
       campos opcionales vacíos.
-- [ ] **M4.5 `PUT /api/external-orders/:externalId/sync` (RF-49/50).** Marca `SINCRONIZADA` y registra
+- [x] **M4.5 `PUT /api/external-orders/:externalId/sync` (RF-49/50).** Marca `SINCRONIZADA` y registra
       `synced_at`; busca por UUID (R5); 404 si no existe (RF-51); protegido con API Key (RF-52); **idempotente**
       (segunda confirmación → 200 sin error, R2/PC-1). Criterio: pruebas de endpoint verifican 200+estado
       cambiado, 404 con UUID inexistente, 401 sin clave, e idempotencia ante confirmación repetida.
-- [ ] **M4.6 Visibilidad de estados por rol (RF-53…56, PC-1c).** Cliente y Laboratorio nunca reciben el estado
+- [x] **M4.6 Visibilidad de estados por rol (RF-53…56, PC-1c).** Cliente y Laboratorio nunca reciben el estado
       de sincronización en sus listados/detalles; Administrador sí, con antigüedad **"pendiente desde"**.
       Criterio: pruebas de serialización por rol verifican ausencia/presencia del campo y el cálculo de la
       antigüedad.
-- [ ] **M4.7 Listados globales para Laboratorio y Administrador (RF-18…21 y RF-28…31).** Endpoints paginados de
+- [x] **M4.7 Listados globales para Laboratorio y Administrador (RF-18…21 y RF-28…31).** Endpoints paginados de
       TODAS las órdenes (cualquier cliente) con filtros por rango de fechas y por cliente (empresa); el de
       Administrador agrega filtro por estado de sincronización y la columna de estado + "pendiente desde"
       (M4.6). Ambos de solo lectura (RF-22/32). Criterio: pruebas de endpoint verifican paginación, cada
