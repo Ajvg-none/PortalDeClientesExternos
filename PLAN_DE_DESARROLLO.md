@@ -68,32 +68,32 @@ quiera reabrir alguna (se registra como nueva entrada fechada en el anexo).
 Cubre: estructura modular del código (ARQ-1), containerización de desarrollo (ARQ-2), BD y API mínima. Nada
 de lógica de negocio aún.
 
-- [ ] **B1.1 Estructura modular del código base (ARQ-1).** Esqueleto `/backend/src/modules/<módulo>/`
+- [x] **B1.1 Estructura modular del código base (ARQ-1).** Esqueleto `/backend/src/modules/<módulo>/`
       (routes, controllers, services, dto, tests) para `auth`, `users`, `orders`, `external-orders` y
       `reports` + capa transversal `/backend/src/core` (config, prisma, errores, logger, middlewares) y
       esqueleto `/frontend/src/features/<feature>/` + capas `/app`, `/shared`, `/core` + `/infra` +
       `.env.example` y `.gitignore`. Sin lógica de negocio aún. Criterio: script/check de estructura
       verifica que cada módulo previsto existe con sus subcarpetas y convenciones de nombres, y que
       `.env.example` documenta las variables usadas (sin secretos reales).
-- [ ] **B1.2 Dockerfiles multi-stage y docker-compose de desarrollo (ARQ-2).** Dockerfiles multi-stage de
+- [x] **B1.2 Dockerfiles multi-stage y docker-compose de desarrollo (ARQ-2).** Dockerfiles multi-stage de
       backend (stage dev con hot-reload y stage prod con runtime mínimo) y de frontend (build estático de
       Vite); `docker-compose.yml` de desarrollo orquesta `db` (postgres:16 con volumen), `api` (Node 20 con
       bind-mount) y `frontend` (dev server de Vite con proxy `/api` al backend), todos con healthcheck.
       Todo el desarrollo local corre dentro de los contenedores (paridad Node/PostgreSQL con producción,
       versiones fijadas). Criterio: `docker compose up` deja los 3 servicios en verde (healthchecks) y un
       test de ejemplo pasa con `docker compose exec api npm test`.
-- [ ] **B1.3 Migración inicial Prisma.** Enums `user_role` y `sync_status`; tablas `users`, `api_keys`,
+- [x] **B1.3 Migración inicial Prisma.** Enums `user_role` y `sync_status`; tablas `users`, `api_keys`,
       `orders` (columnas e índices idénticos al esquema SQL del TXT **+ delta del anexo v1.1: columna
       `users.must_change_password BOOLEAN NOT NULL DEFAULT TRUE`**, DEC-6) + índice compuesto
       `(sync_status, created_at, id)`. Criterio: prueba de integración que aplica migraciones sobre una BD
       limpia y verifica que el snapshot coincide 1:1 con el SQL de referencia del TXT y el delta v1.1 del
       anexo.
-- [ ] **B1.4 API Express base con montaje modular (ARQ-1).** App que registra middlewares globales
+- [x] **B1.4 API Express base con montaje modular (ARQ-1).** App que registra middlewares globales
       (errores/JSON, morgan) y monta el router de cada módulo en `/api/<módulo>` (`auth`, `users`, `orders`,
       `external-orders`, `reports` — aún sin endpoints de negocio) + `GET /api/health`. Criterio: test
       Supertest verifica 200 de health, que los routers modulares quedan registrados (404 JSON controlado
       en ruta desconocida) y que un error lanzado responde el formato estándar (JSON `message`/`code`).
-- [ ] **B1.5 Banco de pruebas backend en contenedor.** Jest + Supertest configurados; cada test corre contra
+- [x] **B1.5 Banco de pruebas backend en contenedor.** Jest + Supertest configurados; cada test corre contra
       BD de prueba aislada y limpia; la suite se ejecuta dentro del contenedor de la API (misma imagen base
       que dev y CI). Criterio: `docker compose exec api npm test` termina en verde sin depender del orden de
       ejecución, tanto en local como en CI.
