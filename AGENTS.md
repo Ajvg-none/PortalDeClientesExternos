@@ -480,6 +480,44 @@ Al conectar, en el explorador (Servers → Portal de Clientes Externos (dev) →
 > `POSTGRES_DB` y el init script de `infra/db/init/`). No existe una base llamada "portal_db"; si algún día se
 > quisiera otro nombre se cambiaría en `docker-compose.yml` y se recrearía el volumen.
 
+**Valores verificados en vivo** (comandos de diagnóstico con su salida real):
+
+- `docker compose -f infra/docker-compose.yml ps` → `portal-db` healthy, puertos `0.0.0.0:5432->5432/tcp`
+- `docker exec portal-db env` → `POSTGRES_USER=portal`, `POSTGRES_PASSWORD=portal`, `POSTGRES_DB=portal`
+- Bases existentes: `portal`, `portal_test`, `postgres`
+
+### 10.1.1 Paso a paso: registrar un **Nuevo Servidor** en pgAdmin
+
+1. En pgAdmin: menú **Object ▸ Register ▸ Server…** (o clic derecho sobre **Servers** ▸ **Register ▸ Server…**).
+2. Pestaña **General**: `Name = Portal de Clientes Externos (Docker)` (etiqueta libre).
+3. Pestaña **Connection** (datos exactos del contenedor):
+   | Campo | Valor |
+   |---|---|
+   | Host name/address | `localhost` (o `127.0.0.1`) |
+   | Port | `5432` |
+   | Maintenance database | `postgres` (recomendado; `portal` también funciona) |
+   | Username | `portal` |
+   | Password | `portal` |
+   | Save password | opcional |
+   | SSL mode | `disable` |
+4. **Save**. En el explorador: **Servers ▸ Portal de Clientes Externos (Docker) ▸ Databases** → verás **`portal`** y **`portal_test`**.
+
+### 10.1.2 Diagnóstico: la conexión "PostgreSQL 18" existente
+
+- Esa conexión apunta a **otro servidor local** (p. ej. un PostgreSQL 18 nativo instalado en tu PC), **no** al
+  contenedor Docker (que corre PostgreSQL 16). Por eso no muestra `portal` ni `portal_test`.
+- **No hay que modificarla ni eliminarla**: basta con registrar el servidor **nuevo** del paso 10.1.1.
+- Si el nuevo servidor no conecta:
+  1. Confirmar que el contenedor esté arriba: `docker compose -f infra/docker-compose.yml up -d db` y revisar `docker compose ps`.
+  2. Probar el puerto desde Windows: `Test-NetConnection 127.0.0.1 -Port 5432`.
+  3. Si el puerto `5432` lo está usando el PostgreSQL nativo (conflicto), cerrarlo o relanzar el contenedor en
+     otro puerto y usar ESE puerto en pgAdmin:
+     ```powershell
+     $env:POSTGRES_PORT = "5433"
+     docker compose -f infra/docker-compose.yml up -d db   # publica 5433:5432
+     # En pgAdmin: Port = 5433
+     ```
+
 ### 10.2 Detalles de red Docker (qué usar y qué no)
 
 - Los contenedores conversan por la **red interna de compose**: dentro de esa red la API alcanza la BD con el
