@@ -250,7 +250,7 @@ laboratorio y administración). Depende de Fases 2, 3 y 5 (endpoints reales). De
 **lenguaje visual (tokens/tipografía/layout, anexo v1.4 del TXT)** son obligatorias. Pruebas de componente con
 la librería de testing elegida al iniciar el frontend (recomendada: Vitest + React Testing Library).
 
-- [ ] **F6.1 Aplicación base y design tokens (anexo v1.4).** Vite + React + Router; **Top Header Layout de
+- [x] **F6.1 Aplicación base y design tokens (anexo v1.4).** Vite + React + Router; **Top Header Layout de
       64px** (logo CROVEN a la izquierda, menú horizontal por rol con indicador dorado #9E7E47 al centro,
       perfil/acciones a la derecha; **sin sidebar izquierdo**), botón de cerrar sesión que redirige al login
       (RF-03), ruta 404 y manejo de sesión expirada (401 → login). Aplica los tokens del anexo v1.4 como
@@ -258,14 +258,14 @@ la librería de testing elegida al iniciar el frontend (recomendada: Vitest + Re
       rounded-xl), tipografía Montserrat (400/500/600/700) e iconografía Lucide teñida en dorado. Criterio:
       pruebas de componente verifican navegación por rol desde el header superior (sin sidebar), logout,
       redirección 404/401 y que los componentes base consumen los tokens definidos.
-- [ ] **F6.2 Pantalla de login (RF-01).** Formulario `username`/contraseña (DEC-2), error de credenciales y
+- [x] **F6.2 Pantalla de login (RF-01).** Formulario `username`/contraseña (DEC-2), error de credenciales y
       redirección según rol; si la respuesta trae `mustChangePassword: true`, redirige a la pantalla de
       cambio obligatorio (DEC-6, F6.10). Criterio: prueba de componente con API simulada verifica mensaje de
       error, éxito con ruta de destino por rol y redirección condicional por el flag.
-- [ ] **F6.3 Dashboard del cliente (RF-05/06).** Tabla histórica (N° de orden, fecha, resumen óptico) con
+- [x] **F6.3 Dashboard del cliente (RF-05/06).** Tabla histórica (N° de orden, fecha, resumen óptico) con
       paginación y total de órdenes creadas. Criterio: prueba de componente verifica render de filas desde
       respuesta simulada y del indicador de total.
-- [ ] **F6.4 Formulario de nueva orden (RF-07…13, RF-11).** Página con secciones (generales [N° de Orden,
+- [x] **F6.4 Formulario de nueva orden (RF-07…13, RF-11).** Página con secciones (generales [N° de Orden,
       Paciente y **Empresa autopoblada en solo lectura**, DEC-3], fórmula OD/OI, tratamiento, montura,
       coloración, observaciones); solo N° de Orden y Paciente obligatorios; **validación asíncrona de
       unicidad** del N° de Orden (RF-10); modal de "Resumen de la orden" previo al envío (RF-12) y
@@ -273,27 +273,27 @@ la librería de testing elegida al iniciar el frontend (recomendada: Vitest + Re
       pruebas de componente verifican envío bloqueado con número duplicado (error mostrado), envío permitido
       con opcionales vacíos, que "Empresa" muestra el `company_name` de la cuenta sin permitir edición, y
       que el modal muestra los datos antes de confirmar.
-- [ ] **F6.5 Historial y detalle de orden del cliente (RF-14…17).** Filtro por rango de fechas, orden más
+- [x] **F6.5 Historial y detalle de orden del cliente (RF-14…17).** Filtro por rango de fechas, orden más
       reciente primero, detalle completo en página aparte (solo lectura, sin editar/cancelar). Criterio:
       pruebas de componente verifican filtros aplicados sobre datos simulados y ausencia de acciones de
       edición en el detalle.
-- [ ] **F6.6 Panel del Laboratorio (RF-18…22).** Listado de todas las órdenes con filtros de fechas y cliente;
+- [x] **F6.6 Panel del Laboratorio (RF-18…22).** Listado de todas las órdenes con filtros de fechas y cliente;
       detalle de solo lectura. Criterio: pruebas de componente verifican que el listado muestra órdenes de
       distintos clientes, que no existen acciones de crear/editar y que el estado de sincronización no se
       muestra (M4.6).
-- [ ] **F6.7 Panel de administración — usuarios (RF-23…27).** Listado con filtros (nombre/rol/estado) y
+- [x] **F6.7 Panel de administración — usuarios (RF-23…27).** Listado con filtros (nombre/rol/estado) y
       acciones crear (con `username`)/editar/habilitar/dar de baja (desactivación lógica, DEC-4)/reactivar/
       reset de contraseña; **sin borrado físico**; confirmación modal para acciones destructivas. Criterio:
       pruebas de componente verifican filtros, que cada acción llama al endpoint correcto con confirmación
       previa y que no existe acción de eliminar definitivamente.
-- [ ] **F6.8 Panel de administración — listado maestro de órdenes (RF-28…32).** Todas las órdenes con estado de
+- [x] **F6.8 Panel de administración — listado maestro de órdenes (RF-28…32).** Todas las órdenes con estado de
       sincronización + "pendiente desde", filtros de fecha/cliente/estado y detalle con estado. Criterio:
       pruebas de componente verifican columna de estado, filtros y ausencia de acciones de edición.
-- [ ] **F6.9 Dashboard de estadísticas y exportación (RF-33/34).** Gráficos (por mes, pendientes vs
+- [x] **F6.9 Dashboard de estadísticas y exportación (RF-33/34).** Gráficos (por mes, pendientes vs
       sincronizadas, top 5) y botón de exportación del listado filtrado. Criterio: pruebas de componente
       verifican que los gráficos reciben los datos simulados del endpoint y que exportar descarga el archivo
       generado por E5.2.
-- [ ] **F6.10 Pantalla de cambio de contraseña obligatorio (DEC-6).** Primer acceso con clave temporal o tras
+- [x] **F6.10 Pantalla de cambio de contraseña obligatorio (DEC-6).** Primer acceso con clave temporal o tras
       reset del admin: pantalla que exige la nueva contraseña antes de navegar al resto de la app; al
       completarla, continúa al dashboard según rol. Criterio: prueba de componente verifica que la navegación
       queda bloqueada hasta completar el cambio y que la redirección posterior es correcta.
