@@ -160,6 +160,17 @@ describe('Fase 2 - Auth y gestion de usuarios (integrador)', () => {
     createdId = created.body.id;
   });
 
+  test('U2.6 - regresion: alta de CLIENTE_EXTERNO sin companyName responde 400 VALIDATION_ERROR', async () => {
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ username: 'cliente-sin-empresa', password: 'OtraClave1', role: 'CLIENTE_EXTERNO' });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('VALIDATION_ERROR');
+    const fields = (res.body.errors as { field: string }[]).map((e) => e.field);
+    expect(fields).toContain('companyName');
+  });
+
   test('U2.7 - baja logica (DEC-4): usuario deshabilitado no puede iniciar sesion', async () => {
     const client = await prisma.user.findUnique({ where: { username: 'cliente1' } });
     clientId = client!.id.toString();

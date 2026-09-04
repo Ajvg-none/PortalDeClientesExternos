@@ -15,11 +15,13 @@ export const createUserValidators = [
     .isLength({ min: 6, max: 72 })
     .withMessage('password debe tener entre 6 y 72 caracteres'),
   body('role').isIn(USER_ROLES).withMessage(`role debe ser uno de: ${USER_ROLES.join(', ')}`),
+  // companyName NO es .optional(): el custom debe correr tambien cuando el
+  // campo falta (si no, la regla de CLIENTE_EXTERNO nunca se evaluaria)
   body('companyName')
-    .optional({ values: 'null' })
     .trim()
+    .if((value: unknown) => value !== undefined && value !== null)
     .isLength({ max: 255 })
-    .custom((value: string, { req }) => {
+    .custom((value: string | undefined, { req }) => {
       // DEC-2: el cliente externo SIEMPRE tiene empresa (RF-24)
       if (req.body.role === UserRole.CLIENTE_EXTERNO && !value?.trim()) {
         throw new Error('companyName es obligatorio para CLIENTE_EXTERNO');
@@ -39,12 +41,12 @@ export const updateUserValidators = [
     .withMessage('username debe tener entre 3 y 100 caracteres'),
   body('role').optional().isIn(USER_ROLES).withMessage(`role debe ser uno de: ${USER_ROLES.join(', ')}`),
   body('companyName')
-    .optional({ values: 'null' })
     .trim()
+    .if((value: unknown) => value !== undefined && value !== null)
     .isLength({ max: 255 })
-    .custom((value: string, { req }) => {
-      // Si se cambia el rol a CLIENTE_EXTERNO, la empresa pasa a ser obligatoria
-      const role = req.body.role ?? undefined;
+    .custom((value: string | undefined, { req }) => {
+      // Si el payload cambia el rol a CLIENTE_EXTERNO, la empresa es obligatoria
+      const role = req.body.role;
       if (role === UserRole.CLIENTE_EXTERNO && !value?.trim()) {
         throw new Error('companyName es obligatorio para CLIENTE_EXTERNO');
       }
