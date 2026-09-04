@@ -167,4 +167,15 @@ describeDb('B1.3 - Esquema de BD (1:1 con el TXT + delta v1.1)', () => {
       ]),
     );
   });
+
+  test('el indice compuesto FIFO (sync_status, created_at, id) tiene la definicion EXACTA del TXT (R3/PC-2)', async () => {
+    const rows = await prisma.$queryRawUnsafe<{ indexdef: string }[]>(
+      `SELECT indexdef FROM pg_indexes
+       WHERE schemaname = 'public' AND indexname = 'idx_orders_sync_status_created_at_id'`,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].indexdef).toBe(
+      'CREATE INDEX idx_orders_sync_status_created_at_id ON public.orders USING btree (sync_status, created_at, id)',
+    );
+  });
 });
