@@ -107,35 +107,35 @@ migración idéntica al TXT + deltas v1.1, health 200 y suite de ejemplo en verd
 
 Cubre RF-01…RF-04 y RF-23…RF-27. Depende de Fase 1 (gate en verde). El frontend se integra en Fase 6.
 
-- [ ] **U2.1 Utilidades de contraseña (bcryptjs).** Cifrado y verificación. Criterio: prueba unitaria verifica
+- [x] **U2.1 Utilidades de contraseña (bcryptjs).** Cifrado y verificación. Criterio: prueba unitaria verifica
       que el hash nunca guarda el texto plano, que una contraseña correcta verifica y una incorrecta no.
-- [ ] **U2.2 Emisión y validación de JWT.** Generación con `sub`, `role`, `exp`; validación de token firmado,
+- [x] **U2.2 Emisión y validación de JWT.** Generación con `sub`, `role`, `exp`; validación de token firmado,
       vencido y alterado. Criterio: prueba unitaria verifica payload correcto, rechazo de token expirado y de
       firma inválida.
-- [ ] **U2.3 Middleware de autenticación.** Exige token válido en cada request protegido y **revalida
+- [x] **U2.3 Middleware de autenticación.** Exige token válido en cada request protegido y **revalida
       `is_active` del usuario en cada petición** (un usuario deshabilitado pierde acceso de inmediato).
       Criterio: prueba unitaria con usuario inactivo responde 401 aunque el token sea válido.
-- [ ] **U2.4 Middleware de autorización por rol.** Roles `CLIENTE_EXTERNO`, `LABORATORIO`, `ADMINISTRADOR`.
+- [x] **U2.4 Middleware de autorización por rol.** Roles `CLIENTE_EXTERNO`, `LABORATORIO`, `ADMINISTRADOR`.
       Criterio: matriz de pruebas unitarias verifica allow/deny (403) para cada rol en rutas de ejemplo
       protegidas con cada permiso.
-- [ ] **U2.5 Login (`POST /auth/login`).** `username` + contraseña (RF-01/02, DEC-2); respuesta con token,
+- [x] **U2.5 Login (`POST /auth/login`).** `username` + contraseña (RF-01/02, DEC-2); respuesta con token,
       rol e indicador `mustChangePassword` (DEC-6). Criterio: prueba unitaria/integración verifica 200 con
       credenciales válidas, 401 con contraseña incorrecta, 401 con usuario inexistente, 403/401 con usuario
       inactivo y el valor correcto de `mustChangePassword` según el estado de la cuenta.
-- [ ] **U2.6 Servicio de administración de usuarios.** Alta/edición con datos de RF-24 (**username único
+- [x] **U2.6 Servicio de administración de usuarios.** Alta/edición con datos de RF-24 (**username único
       asignado por el admin, obligatorio** + empresa, email, teléfono, dirección, contraseña temporal),
       alta de usuarios de laboratorio, habilitar/deshabilitar y reset de contraseña (RF-23/25/26); email y
       teléfono solo como contacto interno (DEC-2); al crear o resetear la contraseña queda
       `must_change_password = TRUE` (DEC-6). Criterio: prueba unitaria del servicio verifica que la
       contraseña temporal queda hasheada, que `username` es único y obligatorio, que email/username se
       validan, que alta y reset dejan el flag en TRUE, y que deshabilitar revierte el acceso (ver U2.3).
-- [ ] **U2.7 Endpoints de gestión de usuarios (solo admin) + listado filtrable.** Crear (pide `username`
+- [x] **U2.7 Endpoints de gestión de usuarios (solo admin) + listado filtrable.** Crear (pide `username`
       obligatorio, DEC-2), editar, habilitar/**dar de baja** y reset de contraseña, y listado con filtros por
       nombre/rol/estado (RF-23…RF-27). **Sin ruta DELETE de usuarios**: la baja es exclusivamente lógica
       (`is_active=false`, DEC-4). Criterio: pruebas de endpoints verifican 403 para rol no admin, validación
       de entrada (express-validator), que el listado filtra por nombre, rol y estado activo/inactivo, y que
       no existe endpoint de borrado físico (la baja desactiva sin eliminar filas ni órdenes asociadas).
-- [ ] **U2.8 Cambio de contraseña obligatorio en primer acceso (DEC-6/X7.2).** Endpoint
+- [x] **U2.8 Cambio de contraseña obligatorio en primer acceso (DEC-6/X7.2).** Endpoint
       `POST /auth/change-password` (contraseña actual + nueva). Mientras `users.must_change_password` sea
       TRUE, el usuario autenticado solo puede ejecutar este endpoint; el resto responde 403 (extensión del
       middleware U2.3). Al completar el cambio: flag → FALSE y acceso normal con la nueva contraseña. Aplica
