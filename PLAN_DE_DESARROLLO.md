@@ -153,29 +153,29 @@ el flujo de primer acceso (U2.8) probado.
 
 Cubre RF-05…RF-17. Depende de Fase 2 (se usa el usuario autenticado como `created_by`).
 
-- [ ] **O3.1 Normalización del payload de orden.** Transformar entrada del formulario a estructura canónica
+- [x] **O3.1 Normalización del payload de orden.** Transformar entrada del formulario a estructura canónica
       (trim, números con decimales y signo, listas cerradas de tratamiento/montura con las strings exactas
       del anexo R6, coloración opcional, observaciones). La entrada **no incluye "Empresa"**: se ignora o
       rechaza cualquier `company` enviado por el cliente (DEC-3). Criterio: prueba unitaria con casos límite
       (OD vacío y OI lleno, esferas negativas, degradado sin unicolor) produce la estructura canónica
       esperada sin errores (RF-09: sin validación estricta numérica) y verifica que un payload con `company`
       ajeno no altera el valor resultante.
-- [ ] **O3.2 Validación de unicidad del N° de Orden (RF-10).** Rechazo si `order_number` ya existe (global;
+- [x] **O3.2 Validación de unicidad del N° de Orden (RF-10).** Rechazo si `order_number` ya existe (global;
       DEC-1). Criterio: prueba unitaria verifica error de duplicado ante un segundo envío con el mismo
       número y que la carrera concurrente queda cubierta por el constraint de BD (error 409 mapeado).
-- [ ] **O3.3 Creación de orden.** Guardar con `external_id` UUID generado, `sync_status=PENDIENTE` (RF-13),
+- [x] **O3.3 Creación de orden.** Guardar con `external_id` UUID generado, `sync_status=PENDIENTE` (RF-13),
       fecha/hora de creación automática (RF-07.1), `created_by` del token; obligatorios: N° de Orden y
       Paciente (RF-09); **`company` se autopobla desde `users.company_name` del usuario autenticado
       (snapshot, DEC-3)** y **sin soporte de adjuntos** (RF-11: la API no acepta multipart ni archivos).
       Criterio: prueba unitaria del servicio verifica que `company` es igual al `company_name` de la cuenta
       autenticada (snapshot), los campos resultantes y el estado inicial.
-- [ ] **O3.4 Proyección de resumen y detalle.** Resumen "OD -2.50 / OI -2.25" con manejo de vacíos (RF-05) y
+- [x] **O3.4 Proyección de resumen y detalle.** Resumen "OD -2.50 / OI -2.25" con manejo de vacíos (RF-05) y
       detalle completo de todos los datos (RF-16). Criterio: prueba unitaria de formateo verifica el texto del
       resumen con valores nulos en un ojo y que el detalle expone cada campo ingresado.
-- [ ] **O3.5 Listado e historial del cliente.** Paginado desde backend, ordenado por fecha de creación
+- [x] **O3.5 Listado e historial del cliente.** Paginado desde backend, ordenado por fecha de creación
       descendente, filtro por rango de fechas (RF-05/15) e indicador "total de órdenes creadas" (RF-06).
       Criterio: prueba unitaria del servicio verifica orden, filtro, paginación y el conteo total del cliente.
-- [ ] **O3.6 Invariantes de inmutabilidad.** Ninguna ruta permite editar, cancelar ni eliminar órdenes para
+- [x] **O3.6 Invariantes de inmutabilidad.** Ninguna ruta permite editar, cancelar ni eliminar órdenes para
       ningún rol (RF-17/22/32). Criterio: pruebas de endpoints verificar 404/405 ante PUT/DELETE sobre una
       orden y 403 al intentar crear órdenes con rol LABORATORIO/ADMINISTRADOR (RF-22/32).
 
