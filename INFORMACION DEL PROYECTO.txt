@@ -678,5 +678,65 @@ desarrollan en TypeScript.)
   desde el schema (schema.prisma es la unica fuente del modelo de datos).
 - No modifica RF, contratos JSON ni decisiones DEC-1 a DEC-6 / ARQ-1 a ARQ-3.
 
+DISEÑO VISUAL Y UI/UX - TOKENS Y PATRONES (v1.4)
+(Actualizacion del anexo: define el lenguaje visual del portal. Complementa la seccion 'Pantallas y
+Frontend' y es AUTORITATIVO sobre patrones de UI. Se implementa en la Fase 6. Sustituye la referencia
+previa a 'sidebar' del layout principal.)
+
+- Estilo general: interfaz corporativa 'optometria premium' - lienzo claro, tarjetas blancas, acento dorado
+  optico en acciones/estados, alto contraste para lectura.
+
+COLOR - TOKENS (paleta semantica)
+- Primario / Accent (Dorado Optico):      #9E7E47
+- Hover / Focus (Dorado Oscuro):          #856837
+- Texto principal / encabezados (Carbon): #222222
+- Texto cuerpo / tablas:                  #444444
+- Texto secundario / metadatos (Gris):    #6E6E6E
+- Fondo general (Canvas):                 #F8F9FA
+- Superficies / cards / tablas:           #FFFFFF con sombra 0 4px 20px rgba(0,0,0,0.04)
+- Bordes suaves de separacion:            rgba(0,0,0,0.08)
+- Sugerencia de variables CSS a implementar: --color-primary, --color-primary-hover, --color-text,
+  --color-text-body, --color-text-secondary, --color-canvas, --color-surface, --color-border,
+  --shadow-card, --radius-xl. Contraste AA: texto #222/#444 sobre #FFF/#F8F9FA cumple; el dorado #9E7E47
+  NO se usa como color de texto pequeno sobre blanco (solo acentos, etiquetas grandes o sobre fondo
+  #FFF8E7).
+
+TIPOGRAFIA Y JERARQUIA
+- Primaria: Montserrat (sans geometrica; cargar pesos 400/500/600/700). Poppins queda documentada como
+  alternativa posible; en v1 no se mezclan.
+- H1/H2/H3: SemiBold (600) / Bold (700), color #222222.
+- Subtitulos / etiquetas de seccion: Medium (500), 12-14px, UPPERCASE, color #9E7E47.
+- Cuerpo / tablas: Regular (400), 14px, color #444444.
+- Metadatos / fechas / ayudas: 12px, color #6E6E6E.
+
+LAYOUT Y ESTRUCTURA
+- NO hay sidebar izquierdo: navegacion SUPERIOR (Top Header Layout) con header de 64px de alto.
+- Header superior: logo CROVEN a la izquierda; menu horizontal segun rol al centro con indicador activo en
+  #9E7E47 (subrayado o pill); perfil/acciones a la derecha (nombre, rol, logout).
+- Contenido centrado con ancho maximo 1280px (max-w-7xl) sobre fondo #F8F9FA.
+- Tarjetas / contenedores / tablas: fondo #FFFFFF, bordes redondeados 12-16px (rounded-xl), sombras suaves
+  (shadow-sm/shadow-md; card 0 4px 20px rgba(0,0,0,0.04)), padding 20-24px, separadores con borde sutil.
+
+COMPONENTES Y DIMENSIONES
+- Boton primario: alto 42px, padding horizontal 18-24px, radio 8px (o pilula en acciones destacadas),
+  fondo #9E7E47, texto blanco, font-weight 600; hover/focus #856837; focus ring visible 2px #9E7E47 (40%).
+- Badges de estado (pill, 12px, semibold):
+  a) PENDIENTE      -> fondo #FFF8E7, texto #9E7E47, borde #F0E2C3.
+  b) SINCRONIZADA   -> variante 'PROCESADO': fondo #E6F4EA, texto #137333.
+  c) ERROR          -> reservado para estados futuros: fondo #FCE8E6, texto #C5221F.
+  Aclaracion: los estados reales de BD (v1, regla R2) son PENDIENTE / SINCRONIZADA (NO 'PROCESADO');
+  'PROCESADO' es solo la variante visual verde del badge SINCRONIZADA y la etiqueta UI usa la cadena
+  exacta de BD (R6). No existe estado ERROR en v1.
+- Iconografia: libreria Lucide React (recomendada; alternativa Tabler Icons). Tamanos 18-20px en acciones
+  y 20-24px en menu; teñidos #9E7E47 (activo) o #6E6E6E (inactivo).
+- Tablas: header 12px uppercase #6E6E6E; filas 14px #444444; hover de fila #F8F9FA.
+- Formularios: labels 12-14px uppercase #9E7E47; inputs 14px #222222 con borde gris suave y focus en
+  #9E7E47; errores con la paleta ERROR (#C5221F sobre #FCE8E6).
+
+IMPLEMENTACION
+- Fase 6 del plan (item F6.1): definir los tokens como variables CSS / design tokens y construir los
+  componentes base (header superior, botones, badges, tarjetas, tablas) con estos valores.
+- UI y textos en espanol; no inventar valores fuera de esta paleta salvo aprobacion registrada en el anexo.
+
 
 

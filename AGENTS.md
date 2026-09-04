@@ -7,7 +7,8 @@ Guía de trabajo para agentes de IA (o personas) que intervengan en este proyect
 - El documento maestro del proyecto es **`INFORMACION DEL PROYECTO.txt`** (raíz del proyecto).
   Contiene: stack tecnológico, requisitos funcionales **RF-01 … RF-56**, análisis de pantallas/frontend,
   esquema SQL de PostgreSQL y los **anexos autoritativos**: puntos críticos (v1), decisiones de negocio y
-  seguridad (v1.1) y pilares técnicos de arquitectura modular, Docker y despliegue/SSL (v1.2).
+  seguridad (v1.1), pilares técnicos de arquitectura modular, Docker y despliegue/SSL (v1.2), decisión
+  TypeScript (v1.3) y diseño visual/UI-UX (v1.4).
 - Regla: **antes de tocar código, proponer cambios o responder preguntas técnicas, leer el TXT completo.**
 - Los **anexos del TXT son autoritativos**: aclaran y deciden puntos críticos, decisiones de negocio y
   pilares técnicos, y prevalecen ante ambigüedades del cuerpo del documento. Si detectas una contradicción,
@@ -419,6 +420,11 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_mount_type_check" CHECK ("mount_type
 - Pantallas por rol según el TXT (login → dashboard según rol; listados/detalles; formulario de orden con
   resumen-modal previo al envío; gestión de usuarios + dashboard de estadísticas para admin; 404).
 - Decisiones UI/UX ya tomadas (página vs. modal) están documentadas en el TXT — respetarlas.
+- **Diseño visual (anexo v1.4 del TXT):** tokens de color (dorado #9E7E47, hover #856837, texto #222222/
+  #444444/#6E6E6E, canvas #F8F9FA, superficies #FFFFFF), tipografía Montserrat (400–700), **Top Header
+  Layout de 64px sin sidebar** (logo CROVEN, menú horizontal por rol, perfil a la derecha), tarjetas
+  rounded-xl con sombras suaves, botones de 42px en dorado, badges (PENDIENTE dorado / SINCRONIZADA verde,
+  ERROR reservado) e iconos Lucide teñidos en dorado.
 - Formularios: React Hook Form + Yup/Zod; validación asíncrona de unicidad del N° de Orden; obligatorios:
   N° de Orden y Paciente (RF-09), con el campo **"Empresa" autopoblado** desde la cuenta del usuario en
   modo solo lectura (DEC-3).

@@ -1,7 +1,7 @@
 # Plan de Desarrollo por Fases — Portal de Clientes Externos
 
 > Checklist de implementación para agentes y desarrolladores. Fuente de verdad: `INFORMACION DEL PROYECTO.txt`
-> (RF-01…RF-56 + anexos autoritativos v1/v1.1/v1.2). Guía operativa: `AGENTS.md`. Reglas R1–R8 del AGENTS.md
+> (RF-01…RF-56 + anexos autoritativos v1…v1.4). Guía operativa: `AGENTS.md`. Reglas R1–R8 del AGENTS.md
 > son de cumplimiento obligatorio en todos los ítems.
 >
 > **Orden estricto:** las fases se ejecutan en secuencia; cada fase exige el "Gate" (criterios de fase) de la
@@ -246,13 +246,18 @@ Cubre RF-33…RF-34. Depende de Fases 3 y 4 (datos multi-cliente con estados).
 ## Fase 6 — Frontend por rol (SPA)
 
 Cubre las pantallas definidas en el TXT (login, dashboard cliente, formulario de orden, detalle, paneles de
-laboratorio y administración). Depende de Fases 2, 3 y 5 (endpoints reales). Decisiones página-vs-modal del
-TXT son obligatorias. Pruebas de componente con la librería de testing elegida al iniciar el frontend
-(recomendada: Vitest + React Testing Library).
+laboratorio y administración). Depende de Fases 2, 3 y 5 (endpoints reales). Decisiones página-vs-modal y el
+**lenguaje visual (tokens/tipografía/layout, anexo v1.4 del TXT)** son obligatorias. Pruebas de componente con
+la librería de testing elegida al iniciar el frontend (recomendada: Vitest + React Testing Library).
 
-- [ ] **F6.1 Aplicación base.** Vite + React + Router; layout con sidebar/header según rol y botón de cerrar
-      sesión que redirige al login (RF-03); ruta 404 y manejo de sesión expirada (redirigir a login ante 401).
-      Criterio: pruebas de componente verifican navegación por rol, logout y redirección 404/401.
+- [ ] **F6.1 Aplicación base y design tokens (anexo v1.4).** Vite + React + Router; **Top Header Layout de
+      64px** (logo CROVEN a la izquierda, menú horizontal por rol con indicador dorado #9E7E47 al centro,
+      perfil/acciones a la derecha; **sin sidebar izquierdo**), botón de cerrar sesión que redirige al login
+      (RF-03), ruta 404 y manejo de sesión expirada (401 → login). Aplica los tokens del anexo v1.4 como
+      variables CSS (colores #9E7E47/#856837/#222222/#444444/#6E6E6E/#F8F9FA/#FFFFFF, sombras, radios
+      rounded-xl), tipografía Montserrat (400/500/600/700) e iconografía Lucide teñida en dorado. Criterio:
+      pruebas de componente verifican navegación por rol desde el header superior (sin sidebar), logout,
+      redirección 404/401 y que los componentes base consumen los tokens definidos.
 - [ ] **F6.2 Pantalla de login (RF-01).** Formulario `username`/contraseña (DEC-2), error de credenciales y
       redirección según rol; si la respuesta trae `mustChangePassword: true`, redirige a la pantalla de
       cambio obligatorio (DEC-6, F6.10). Criterio: prueba de componente con API simulada verifica mensaje de
