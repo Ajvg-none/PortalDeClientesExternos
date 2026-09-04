@@ -229,11 +229,11 @@ tests.
 
 Cubre RF-33…RF-34. Depende de Fases 3 y 4 (datos multi-cliente con estados).
 
-- [ ] **E5.1 Consultas agregadas del dashboard.** Total de órdenes por mes (agrupado en zona horaria
+- [x] **E5.1 Consultas agregadas del dashboard.** Total de órdenes por mes (agrupado en zona horaria
       configurada), top 5 clientes por cantidad de órdenes, y pendientes vs sincronizadas (RF-33). Criterio:
       pruebas unitarias con dataset fijo verificar cada agregado (meses, top 5 ordenado, conteos por estado)
       y que la agrupación por cliente usa la `company` autopoblada y consistente de la orden (DEC-3).
-- [ ] **E5.2 Exportación CSV/Excel con filtros aplicados (RF-34).** Generador de reporte (encabezados,
+- [x] **E5.2 Exportación CSV/Excel con filtros aplicados (RF-34).** Generador de reporte (encabezados,
       escapado de comas/saltos de línea, codificación compatible con Excel — BOM UTF-8) y endpoint que
       respeta los mismos filtros de fechas/cliente/estado. Criterio: prueba unitaria del generador verifica
       el contenido del archivo (filas/columnas/escapado) y prueba de endpoint verifica que el archivo

@@ -8,4 +8,6 @@ export const env = {
   isTest: (process.env.NODE_ENV ?? 'development') === 'test',
   jwtSecret: process.env.JWT_SECRET ?? 'dev-jwt-secret-change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
+  // Zona horaria para agrupar las estadisticas mensuales (E5.1/RF-33)
+  analyticsTimezone: process.env.ANALYTICS_TIMEZONE ?? 'UTC',
 } as const;
