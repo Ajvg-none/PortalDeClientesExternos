@@ -1,14 +1,98 @@
-/**
- * App raiz (esqueleto Fase 1 - B1.1).
- * En Fase 6 se reemplaza por el layout con rutas/guards por rol
- * (src/app) y el contenido de cada feature.
- */
+import { useState } from 'react';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { AuthContext, useAuth, type AuthSession } from './app/AuthContext';
+import { RequireAuth, RequireRole } from './app/guards';
+import { TopBar, Layout } from './app/TopBar';
+import { session } from './core/http';
+import type { AuthUser } from './core/types';
+import { LoginPage } from './features/auth/pages/LoginPage';
+import { ChangePasswordPage } from './features/auth/pages/ChangePasswordPage';
+import { OrdersPage } from './features/orders-client/pages/OrdersPage';
+import { OrderDetailPage } from './features/orders-client/pages/OrderDetailPage';
+import { NewOrderPage } from './features/orders-client/pages/NewOrderPage';
+import { UsersPage } from './features/admin-users/pages/UsersPage';
+import { StatsPage } from './features/admin-stats/pages/StatsPage';
+import './styles/tokens.css';
+
+/** App raiz (Fase 6): rutas por rol + Top Header Layout (anexo v1.4). */
 export function App() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  const authValue: AuthSession = {
+    user,
+    token: session.getToken(),
+    setSession: (_token, u) => setUser(u),
+    clear: () => {
+      session.clear();
+      setUser(null);
+    },
+  };
+
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-      <h1>Portal de Clientes Externos</h1>
-      <p>Sistema de gestión de órdenes ópticas — esqueleto frontend (Fase 1).</p>
-      <p>API disponible en <code>/api/health</code> (vía proxy Vite).</p>
-    </main>
+    <AuthContext.Provider value={authValue}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/cambiar-contrasena"
+            element={
+              <RequireAuth>
+                <ChangePasswordPage />
+              </RequireAuth>
+            }
+          />
+          <Route path="/" element={<RequireAuth><AppShell /></RequireAuth>}>
+            <Route index element={<Navigate to="/ordenes" replace />} />
+            <Route path="ordenes" element={<Layout><OrdersPage /></Layout>} />
+            <Route
+              path="ordenes/nueva"
+              element={
+                <RequireRole role="CLIENTE_EXTERNO">
+                  <Layout><NewOrderPage /></Layout>
+                </RequireRole>
+              }
+            />
+            <Route path="ordenes/:id" element={<Layout><OrderDetailPage /></Layout>} />
+            <Route
+              path="usuarios"
+              element={
+                <RequireRole role="ADMINISTRADOR">
+                  <Layout><UsersPage /></Layout>
+                </RequireRole>
+              }
+            />
+            <Route
+              path="estadisticas"
+              element={
+                <RequireRole role="ADMINISTRADOR">
+                  <Layout><StatsPage /></Layout>
+                </RequireRole>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <Layout>
+                  <h1>404</h1>
+                  <p>Página no encontrada.</p>
+                </Layout>
+              }
+            />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthContext.Provider>
+  );
+}
+
+/** Shell autenticado: Top Header (64px) + area de contenido por ruta. */
+function AppShell() {
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <>
+      <TopBar role={user.role} username={user.username} />
+      <Outlet />
+    </>
   );
 }
