@@ -14,8 +14,10 @@ Guía de trabajo para agentes de IA (o personas) que intervengan en este proyect
   mandan los anexos.
 - **No duplicar** la información del TXT en otros archivos: referencia el TXT. Este AGENTS.md solo resume
   contexto y reglas operativas para el agente.
-- Estado actual del proyecto: **planificación/desarrollo incipiente** (solo existe documentación, aún no hay
-  código). No inventes estructura de carpetas, endpoints ni contratos que contradigan el documento.
+- Estado actual del proyecto: **Fase 1 completada y verificada** (rama `rama-alejandro`): esqueleto modular
+  TypeScript (backend/frontend), entorno Docker de desarrollo, migración inicial Prisma aplicada, API modular
+  con `/api/health` y suites de test en verde. La documentación del TXT sigue siendo la fuente de verdad de
+  requisitos y decisiones; los anexos registran las actualizaciones.
 - El **`PLAN_DE_DESARROLLO.md`** (raíz) contiene el plan de implementación por fases en formato checklist,
   con Gates por fase y criterios de prueba por ítem. Ejecutarlo en **orden estricto**: cada ítem requiere su
   prueba unitaria en verde y cada fase exige el Gate de la fase anterior antes de comenzar.
@@ -154,17 +156,263 @@ Son reglas de negocio vigentes: no reinterpretarlas ni reabrirlas sin consultar 
    (flag `users.must_change_password`, DEFAULT TRUE; solo el cambio de contraseña es accesible hasta
    completarlo).
 
-## 6. Modelo de datos (resumen)
+## 6. Modelo de datos — esquema completo (Fase 1, B1.3)
 
-Tablas definidas en el TXT: `users` (rol, `is_active`, credenciales), `api_keys` (una activa en v1), `orders`
-(datos generales + fórmula OD/OI + tratamiento + montura + coloración + observaciones + estado de sync +
-auditoría `created_by/created_at/updated_at`). Índices recomendados en el TXT + `(sync_status, created_at, id)`.
+Las tablas `users`, `api_keys` y `orders` replican el esquema SQL del TXT **más el delta del anexo v1.1
+(DEC-6: `users.must_change_password`)**. La fuente autoritativa en ejecución es `backend/prisma/`
+(`schema.prisma` + migraciones que `prisma migrate deploy` aplica al arrancar el contenedor); este apartado
+es un snapshot documental de la Fase 1 (migración `20260903202850_init`).
 
-- Convenciones: snake_case en BD; `TIMESTAMPTZ` (UTC); enums `user_role` y `sync_status`.
-- Delta del anexo v1.1 (DEC-6): columna `users.must_change_password BOOLEAN NOT NULL DEFAULT TRUE` — debe
-  incluirse en la migración inicial (ítem B1.3 del plan).
-- Cuando exista `schema.prisma`, debe reflejar el SQL del documento **más los deltas del anexo (v1.1)**;
-  **no cambiar el modelo silenciosamente**: anota cualquier divergencia o proponla como decisión explícita.
+- Convenciones: columnas snake_case en BD; `TIMESTAMPTZ` (UTC); enums mapeados `user_role` y `sync_status`.
+- Restricciones extra vs. el modelo Prisma (solo existen en el DDL aplicado): CHECK de `treatment` y de
+  `mount_type` con las strings exactas del anexo (R6), añadidas a la migración inicial.
+- Índice compuesto FIFO `(sync_status, created_at, id)` (R3/PC-2) para el endpoint de pendientes
+  `GET /api/external-orders/pending` — existe en `schema.prisma` y en el DDL; verificado por el test de
+  integración B1.3 (incluida la definición exacta `indexdef`).
+- **No cambiar el modelo silenciosamente**: cualquier cambio de esquema requiere nueva migración, actualizar
+  este snapshot y anotar la decisión en el anexo del TXT.
+
+### 6.1 `backend/prisma/schema.prisma` (modelo Prisma — tipos de datos)
+
+```prisma
+// ============================================================
+// Prisma schema - Portal de Clientes Externos (Fase 1, B1.3)
+// Espejo del esquema SQL de INFORMACION DEL PROYECTO.txt MAS el
+// delta del anexo v1.1 (DEC-6): users.must_change_password.
+// Enums mapeados a user_role / sync_status; columnas snake_case.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENTE_EXTERNO
+  LABORATORIO
+  ADMINISTRADOR
+
+  @@map("user_role")
+}
+
+enum SyncStatus {
+  PENDIENTE
+  SINCRONIZADA
+
+  @@map("sync_status")
+}
+
+model User {
+  id                 BigInt   @id @default(autoincrement())
+  username           String   @unique @db.VarChar(100)
+  passwordHash       String   @map("password_hash") @db.VarChar(255)
+  email              String?  @unique @db.VarChar(255)
+  role               UserRole
+  companyName        String?  @map("company_name") @db.VarChar(255)
+  phone              String?  @db.VarChar(50)
+  address            String?  @db.Text
+  isActive           Boolean  @default(true) @map("is_active")
+  // Delta anexo v1.1 (DEC-6): cambio obligatorio de contrasena en primer acceso
+  mustChangePassword Boolean  @default(true) @map("must_change_password")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  orders             Order[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id          Int      @id @default(autoincrement())
+  keyValue    String   @unique @map("key_value") @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("api_keys")
+}
+
+model Order {
+  id                          BigInt    @id @default(autoincrement())
+  // DEFAULT gen_random_uuid() a nivel BD (igual que el SQL del TXT)
+  externalId                  String    @unique @default(dbgenerated("gen_random_uuid()")) @map("external_id") @db.Uuid
+  orderNumber                 String    @unique @map("order_number") @db.VarChar(100)
+  company                     String    @db.VarChar(255)
+  patient                     String    @db.VarChar(255)
+
+  // Formula optica Ojo Derecho (OD)
+  odSphere                    Decimal?  @map("od_sphere") @db.Decimal(6, 2)
+  odCylinder                  Decimal?  @map("od_cylinder") @db.Decimal(6, 2)
+  odAxis                      Decimal?  @map("od_axis") @db.Decimal(6, 2)
+  odAddition                  Decimal?  @map("od_addition") @db.Decimal(6, 2)
+  odDnp                       Decimal?  @map("od_dnp") @db.Decimal(6, 2)
+  odHeight                    Decimal?  @map("od_height") @db.Decimal(6, 2)
+  odProductCode               String?   @map("od_product_code") @db.VarChar(100)
+
+  // Formula optica Ojo Izquierdo (OI)
+  oiSphere                    Decimal?  @map("oi_sphere") @db.Decimal(6, 2)
+  oiCylinder                  Decimal?  @map("oi_cylinder") @db.Decimal(6, 2)
+  oiAxis                      Decimal?  @map("oi_axis") @db.Decimal(6, 2)
+  oiAddition                  Decimal?  @map("oi_addition") @db.Decimal(6, 2)
+  oiDnp                       Decimal?  @map("oi_dnp") @db.Decimal(6, 2)
+  oiHeight                    Decimal?  @map("oi_height") @db.Decimal(6, 2)
+  oiProductCode               String?   @map("oi_product_code") @db.VarChar(100)
+
+  // Tratamiento (seleccion unica; CHECK agregado en la migracion)
+  treatment                   String?   @db.VarChar(50)
+  // Tipo de montura (seleccion unica; CHECK agregado en la migracion)
+  mountType                   String?   @map("mount_type") @db.VarChar(50)
+  mountBrand                  String?   @map("mount_brand") @db.VarChar(100)
+  mountModel                  String?   @map("mount_model") @db.VarChar(100)
+  mountColor                  String?   @map("mount_color") @db.VarChar(100)
+
+  // Coloracion
+  colorationColor             String?   @map("coloration_color") @db.VarChar(100)
+  colorationUnicolor          Boolean   @default(false) @map("coloration_unicolor")
+  colorationDegradadoPercent  Decimal?  @map("coloration_degradado_percent") @db.Decimal(5, 2)
+
+  observations                String?   @db.Text
+
+  // Sincronizacion (solo 2 estados en v1, regla R2)
+  syncStatus                  SyncStatus @default(PENDIENTE) @map("sync_status")
+  syncedAt                    DateTime?  @map("synced_at") @db.Timestamptz(6)
+
+  // Auditoria / propiedad
+  createdBy                   BigInt?   @map("created_by")
+  creator                     User?     @relation(fields: [createdBy], references: [id])
+  createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([company], map: "idx_orders_company")
+  @@index([syncStatus], map: "idx_orders_sync_status")
+  @@index([createdBy], map: "idx_orders_created_by")
+  @@index([createdAt(sort: Desc)], map: "idx_orders_created_at")
+  // Indice compuesto para el endpoint de pendientes (R3 / PC-2)
+  @@index([syncStatus, createdAt, id], map: "idx_orders_sync_status_created_at_id")
+  @@map("orders")
+}
+```
+
+### 6.2 DDL SQL aplicado — migración `20260903202850_init` (PostgreSQL 16)
+
+```sql
+-- CreateEnum
+CREATE TYPE "user_role" AS ENUM ('CLIENTE_EXTERNO', 'LABORATORIO', 'ADMINISTRADOR');
+
+-- CreateEnum
+CREATE TYPE "sync_status" AS ENUM ('PENDIENTE', 'SINCRONIZADA');
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" BIGSERIAL NOT NULL,
+    "username" VARCHAR(100) NOT NULL,
+    "password_hash" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(255),
+    "role" "user_role" NOT NULL,
+    "company_name" VARCHAR(255),
+    "phone" VARCHAR(50),
+    "address" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "must_change_password" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "api_keys" (
+    "id" SERIAL NOT NULL,
+    "key_value" VARCHAR(255) NOT NULL,
+    "description" VARCHAR(255),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "api_keys_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "orders" (
+    "id" BIGSERIAL NOT NULL,
+    "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "order_number" VARCHAR(100) NOT NULL,
+    "company" VARCHAR(255) NOT NULL,
+    "patient" VARCHAR(255) NOT NULL,
+    "od_sphere" DECIMAL(6,2),
+    "od_cylinder" DECIMAL(6,2),
+    "od_axis" DECIMAL(6,2),
+    "od_addition" DECIMAL(6,2),
+    "od_dnp" DECIMAL(6,2),
+    "od_height" DECIMAL(6,2),
+    "od_product_code" VARCHAR(100),
+    "oi_sphere" DECIMAL(6,2),
+    "oi_cylinder" DECIMAL(6,2),
+    "oi_axis" DECIMAL(6,2),
+    "oi_addition" DECIMAL(6,2),
+    "oi_dnp" DECIMAL(6,2),
+    "oi_height" DECIMAL(6,2),
+    "oi_product_code" VARCHAR(100),
+    "treatment" VARCHAR(50),
+    "mount_type" VARCHAR(50),
+    "mount_brand" VARCHAR(100),
+    "mount_model" VARCHAR(100),
+    "mount_color" VARCHAR(100),
+    "coloration_color" VARCHAR(100),
+    "coloration_unicolor" BOOLEAN NOT NULL DEFAULT false,
+    "coloration_degradado_percent" DECIMAL(5,2),
+    "observations" TEXT,
+    "sync_status" "sync_status" NOT NULL DEFAULT 'PENDIENTE',
+    "synced_at" TIMESTAMPTZ(6),
+    "created_by" BIGINT,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "orders_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "api_keys_key_value_key" ON "api_keys"("key_value");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "orders_external_id_key" ON "orders"("external_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "orders_order_number_key" ON "orders"("order_number");
+
+-- CreateIndex
+CREATE INDEX "idx_orders_company" ON "orders"("company");
+
+-- CreateIndex
+CREATE INDEX "idx_orders_sync_status" ON "orders"("sync_status");
+
+-- CreateIndex
+CREATE INDEX "idx_orders_created_by" ON "orders"("created_by");
+
+-- CreateIndex
+CREATE INDEX "idx_orders_created_at" ON "orders"("created_at" DESC);
+
+-- CreateIndex
+CREATE INDEX "idx_orders_sync_status_created_at_id" ON "orders"("sync_status", "created_at", "id");
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- CHECK constraints del esquema del TXT (anexo R6: strings identicas en
+-- formulario, BD y JSON)
+ALTER TABLE "orders" ADD CONSTRAINT "orders_treatment_check" CHECK ("treatment" IS NULL OR "treatment" IN ('ECO (AR Verde)', 'OCEAN (AR Azul)', 'SOLERX SILVER', 'SOLERX BLUE'));
+ALTER TABLE "orders" ADD CONSTRAINT "orders_mount_type_check" CHECK ("mount_type" IS NULL OR "mount_type" IN ('METAL ARO COMPLETO', 'METAL SEMI-AEREA', 'PASTA ARO COMPLETO', 'PASTA SEMI-AEREA', 'AL AIRE'));
+```
 
 ## 7. Frontend (resumen de lo planificado)
 
@@ -206,3 +454,52 @@ Resumen operativo de los pilares del anexo v1.2 del TXT (detalle completo allá;
   certificados Let's Encrypt vía Certbot con renovación automática; sin certificados autofirmados en
   producción. Implementación: Fase 8 (I8.1–I8.7).
 - `<dominio>` = dominio oficial del proyecto; se define en I8.2 antes de emitir certificados.
+
+## 10. Ver la base de datos en pgAdmin (entorno local)
+
+### 10.1 Registrar el servidor en pgAdmin
+
+Datos exactos tal como los publica `infra/docker-compose.yml` (servicio `db`, PostgreSQL 16):
+
+| Campo pgAdmin | Valor |
+|---|---|
+| Nombre del servidor (etiqueta libre) | `Portal de Clientes Externos (dev)` |
+| Host / dirección | `localhost` |
+| Puerto | `5432` |
+| Base de datos de mantenimiento | `portal` |
+| Usuario | `portal` |
+| Contraseña | `portal` |
+| SSL | `disable` (solo local; en producción va por red privada) |
+
+Al conectar, en el explorador (Servers → Portal de Clientes Externos (dev) → Databases) verás **dos bases**:
+
+- **`portal`** — base de desarrollo (la usa la API vía `DATABASE_URL`).
+- **`portal_test`** — base de pruebas (la resetea `npm run test:integration` cada vez que corre la suite).
+
+> ⚠️ Aclaración sobre los nombres: los nombres reales son **`portal`** y **`portal_test`** (los define
+> `POSTGRES_DB` y el init script de `infra/db/init/`). No existe una base llamada "portal_db"; si algún día se
+> quisiera otro nombre se cambiaría en `docker-compose.yml` y se recrearía el volumen.
+
+### 10.2 Detalles de red Docker (qué usar y qué no)
+
+- Los contenedores conversan por la **red interna de compose**: dentro de esa red la API alcanza la BD con el
+  host `db` (nombre de servicio) o `portal-db` (`container_name`). Ese host **solo** existe dentro de la red.
+- pgAdmin instalado en tu Windows **no está en esa red**: por eso se conecta por `localhost` + el puerto
+  **publicado** en el host (mapeo `ports: "${POSTGRES_PORT:-5432}:5432"`). El puerto publicado por defecto es
+  `5432`.
+- **No usar** el host `db` ni la IP interna del contenedor desde pgAdmin local: no se resuelven fuera de la red.
+- Si pgAdmin corriera dentro de Docker (en vez de en Windows), debería unirse a la misma red del compose
+  (`portal-clientes-externos_default`) y entonces sí conectar a `db:5432`.
+- Prerrequisito: el contenedor `portal-db` debe estar arriba:
+  ```powershell
+  docker compose -f infra/docker-compose.yml up -d db
+  docker compose -f infra/docker-compose.yml ps
+  ```
+- **Puerto 5432 ocupado** (p. ej. por otro PostgreSQL local): relanzar con otro puerto y conectar con ese valor:
+  ```powershell
+  $env:POSTGRES_PORT = "5433"
+  docker compose -f infra/docker-compose.yml up -d db   # publica 5433:5432
+  # En pgAdmin: puerto 5433
+  ```
+- La contraseña maestra que pide pgAdmin en el primer arranque es solo para guardar sus configuraciones
+  locales; **no** es la contraseña de la base (que es `portal`).
