@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
 import { statusController } from '../controllers/status.controller';
-import { create, getByRole, listByRole } from '../controllers/orders.controller';
+import { checkOrderNumber, create, getByRole, listByRole } from '../controllers/orders.controller';
 import {
   createOrderValidators,
   listOrdersValidators,
   orderIdParamValidators,
+  orderNumberParamValidators,
 } from '../dto/order.dto';
 import { validate } from '../../../core/middlewares/validate';
 import { authenticate } from '../../auth/middlewares/authenticate';
@@ -35,6 +36,15 @@ router.post('/', requireRole(UserRole.CLIENTE_EXTERNO), createOrderValidators, v
 
 // Historial propio / listado global segun rol
 router.get('/', listOrdersValidators, validate, listByRole);
+
+// REM-2026-09/RF-10: check async de unicidad del N de Orden (solo cliente)
+router.get(
+  '/order-number/:value',
+  requireRole(UserRole.CLIENTE_EXTERNO),
+  orderNumberParamValidators,
+  validate,
+  checkOrderNumber,
+);
 
 // Detalle segun rol (cliente: solo suyas)
 router.get('/:id', orderIdParamValidators, validate, getByRole);

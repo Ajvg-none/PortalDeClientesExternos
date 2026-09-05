@@ -21,4 +21,6 @@ export const ordersApi = {
   },
   get: (id: string) => http.get<OrderDetail>(`/orders/${id}`),
   create: (input: OrderCreateInput) => http.post<OrderDetail>('/orders', input),
+  checkOrderNumber: (value: string) =>
+    http.get<{ available: boolean }>(`/orders/order-number/${encodeURIComponent(value)}`),
 };

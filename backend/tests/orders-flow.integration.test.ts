@@ -228,4 +228,24 @@ describe('Fase 3 - Dominio de ordenes del cliente (integrador)', () => {
     const count = await prisma.order.count();
     expect(count).toBe(2); // nada se edito ni borro
   });
+
+  test('REM-2026-09/RF-10 - check de unicidad del N de Orden (validacion async UI)', async () => {
+    const inUse = await request(app)
+      .get('/api/orders/order-number/ORD-A-001')
+      .set('Authorization', `Bearer ${clientAToken}`);
+    expect(inUse.status).toBe(200);
+    expect(inUse.body).toEqual({ available: false });
+
+    const free = await request(app)
+      .get('/api/orders/order-number/ORD-NUEVO-LIBRE')
+      .set('Authorization', `Bearer ${clientAToken}`);
+    expect(free.status).toBe(200);
+    expect(free.body).toEqual({ available: true });
+
+    // Solo el cliente que crea ordenes lo usa: LABORATORIO no puede
+    const lab = await request(app)
+      .get('/api/orders/order-number/ORD-A-001')
+      .set('Authorization', `Bearer ${labToken}`);
+    expect(lab.status).toBe(403);
+  });
 });

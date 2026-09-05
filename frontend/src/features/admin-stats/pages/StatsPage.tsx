@@ -1,18 +1,31 @@
 import { useEffect, useState } from 'react';
 import { reportsApi } from '../api/reports';
+import { httpDownload } from '../../../core/http';
 import type { DashboardData } from '../../../core/types';
 
 /** F6.9 - Dashboard de estadisticas (RF-33) + boton de exportacion (RF-34). */
 export function StatsPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     reportsApi.dashboard().then(setData).catch((e) => setError(e instanceof Error ? e.message : 'Error'));
   }, []);
 
-  function exportCsv() {
-    window.open('/api/reports/orders/export', '_blank');
+  // REM-2026-09/RF-34: descarga autenticada (fetch + Authorization). Un
+  // window.open no adjunta el JWT y el endpoint protegido responderia 401.
+  async function exportCsv() {
+    setError('');
+    setExporting(true);
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      await httpDownload('/reports/orders/export', `reporte-ordenes-${stamp}.csv`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo exportar el reporte');
+    } finally {
+      setExporting(false);
+    }
   }
 
   if (error) return <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>;
@@ -24,8 +37,8 @@ export function StatsPage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h2>Estadísticas</h2>
-        <button onClick={exportCsv} style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
-          Exportar CSV
+        <button onClick={exportCsv} disabled={exporting} style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+          {exporting ? 'Exportando…' : 'Exportar CSV'}
         </button>
       </div>
 

@@ -10,7 +10,7 @@ import { LoginPage } from './LoginPage';
 
 vi.mock('../../../core/http', () => ({
   http: { post: vi.fn() },
-  session: { getToken: vi.fn(() => null), setToken: vi.fn(), clear: vi.fn() },
+  session: { getToken: vi.fn(() => null), setToken: vi.fn(), setUser: vi.fn(), clear: vi.fn() },
 }));
 import { http } from '../../../core/http';
 

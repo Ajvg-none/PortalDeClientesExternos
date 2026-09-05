@@ -87,3 +87,12 @@ export const orderIdParamValidators = [
   // El id de BD es BIGINT: secuencia de digitos
   param('id').custom((v) => /^\d+$/.test(String(v))).withMessage('id invalido'),
 ];
+
+// REM-2026-09/RF-10: el N de Orden del cliente (hasta 100 caracteres, igual
+// que la columna order_number)
+export const orderNumberParamValidators = [
+  param('value')
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('value debe tener entre 1 y 100 caracteres'),
+];

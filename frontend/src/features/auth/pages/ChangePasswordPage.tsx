@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { http } from '../../../core/http';
+import { http, session } from '../../../core/http';
 import { useAuth } from '../../../app/AuthContext';
 
 /** F6.10/DEC-6 - Cambio de contraseña obligatorio en primer acceso. */
@@ -21,7 +21,11 @@ export function ChangePasswordPage() {
         currentPassword,
         newPassword,
       });
-      if (user && res.user) setSession(session_token(), { ...user, mustChangePassword: false });
+      if (user && res.user) {
+        const updated = { ...user, mustChangePassword: false };
+        session.setUser(updated);
+        setSession(session.getToken() ?? '', updated);
+      }
       navigate('/ordenes');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cambiar la contraseña');
@@ -41,11 +45,11 @@ export function ChangePasswordPage() {
           Por seguridad, debes cambiar tu contraseña temporal antes de continuar.
         </p>
 
-        <label style={labelStyle}>Contraseña actual</label>
-        <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" style={inputStyle} />
+        <label htmlFor="current-password" style={labelStyle}>Contraseña actual</label>
+        <input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" style={inputStyle} />
 
-        <label style={{ ...labelStyle, marginTop: '16px' }}>Nueva contraseña</label>
-        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" style={inputStyle} />
+        <label htmlFor="new-password" style={{ ...labelStyle, marginTop: '16px' }}>Nueva contraseña</label>
+        <input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" style={inputStyle} />
 
         {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)', fontSize: '13px', marginTop: '12px' }}>{error}</p>}
 
@@ -55,11 +59,6 @@ export function ChangePasswordPage() {
       </form>
     </div>
   );
-}
-
-// helper para no reintroducir la lectura del token (session.getToken)
-function session_token(): string {
-  return localStorage.getItem('portal_token') ?? '';
 }
 
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', marginBottom: '6px' };

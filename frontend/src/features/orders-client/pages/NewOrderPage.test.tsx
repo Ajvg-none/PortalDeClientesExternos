@@ -9,7 +9,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../../app/AuthContext';
 import { NewOrderPage } from './NewOrderPage';
 
-vi.mock('../api/orders', () => ({ ordersApi: { list: vi.fn(), get: vi.fn(), create: vi.fn() } }));
+vi.mock('../api/orders', () => ({
+  ordersApi: {
+    list: vi.fn(),
+    get: vi.fn(),
+    create: vi.fn(),
+    checkOrderNumber: vi.fn(() => Promise.resolve({ available: true })),
+  },
+}));
 import { ordersApi } from '../api/orders';
 
 function providers() {

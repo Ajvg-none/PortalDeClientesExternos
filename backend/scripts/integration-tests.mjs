@@ -7,10 +7,29 @@
  */
 import { spawnSync } from 'node:child_process';
 
-const testUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+// REM-2026-09: sin fallback a DATABASE_URL. Este script ejecuta
+// `prisma migrate reset` (DROP + recrea tablas): solo debe correr contra la
+// BD de PRUEBAS, nunca contra dev/prod. Se exige TEST_DATABASE_URL explicita
+// y un nombre de base que termine en `_test` como red de seguridad extra.
+const testUrl = process.env.TEST_DATABASE_URL;
 if (!testUrl) {
   // eslint-disable-next-line no-console
   console.error('[test:integration] Falta TEST_DATABASE_URL (ver backend/.env.example)');
+  process.exit(1);
+}
+try {
+  const dbName = new URL(testUrl).pathname.split('/').filter(Boolean).pop() ?? '';
+  if (!dbName.endsWith('_test')) {
+    // eslint-disable-next-line no-console
+    console.error(
+      `[test:integration] TEST_DATABASE_URL debe apuntar a una base *_test (recibida: "${dbName}"). ` +
+        'Negado para proteger bases de dev/prod.',
+    );
+    process.exit(1);
+  }
+} catch {
+  // eslint-disable-next-line no-console
+  console.error('[test:integration] TEST_DATABASE_URL no es una URL valida');
   process.exit(1);
 }
 

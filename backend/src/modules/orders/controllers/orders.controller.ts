@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../../core/async';
 import {
+  checkOrderNumberAvailable,
   createOrder,
   getAnyOrder,
   getOwnOrder,
@@ -56,4 +57,13 @@ export const getByRole = asyncHandler(async (req: Request, res: Response) => {
     return;
   }
   res.json(await getAnyOrder(role, id));
+});
+
+/**
+ * REM-2026-09/RF-10 - GET /api/orders/order-number/:value (solo cliente):
+ * validacion asincrona de unicidad del N de Orden en el formulario.
+ */
+export const checkOrderNumber = asyncHandler(async (req: Request, res: Response) => {
+  const available = await checkOrderNumberAvailable(String(req.params.value));
+  res.json({ available });
 });

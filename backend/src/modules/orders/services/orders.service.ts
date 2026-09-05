@@ -185,6 +185,15 @@ export async function getOwnOrder(userId: bigint, orderId: bigint) {
   return orderToDetail(order);
 }
 
+/** REM-2026-09/RF-10 - Check de unicidad global del N de Orden (validacion async UI). */
+export async function checkOrderNumberAvailable(value: string): Promise<boolean> {
+  const existing = await prisma.order.findFirst({
+    where: { orderNumber: value },
+    select: { id: true },
+  });
+  return existing === null;
+}
+
 /**
  * M4.7/RF-18…21 y RF-28…31 - Listado GLOBAL de solo lectura para
  * LABORATORIO (sin estado) y ADMINISTRADOR (con estado + pendiente desde).

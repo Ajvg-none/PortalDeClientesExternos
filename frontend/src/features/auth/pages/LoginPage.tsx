@@ -20,6 +20,7 @@ export function LoginPage() {
     try {
       const res = await http.post<LoginResponse>('/auth/login', { username, password });
       session.setToken(res.token);
+      session.setUser(res.user);
       setSession(res.token, res.user);
       navigate(res.user.mustChangePassword ? '/cambiar-contrasena' : '/ordenes');
     } catch (err) {
