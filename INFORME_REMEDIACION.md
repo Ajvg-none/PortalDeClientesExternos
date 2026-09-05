@@ -64,3 +64,33 @@ unicidad, `dateToDayRange` por zona horaria, overflow numérico, 413, CSV inject
 Bloque REM-2026-09 del `PLAN_DE_DESARROLLO.md` con todos los sub-ítems en verde. Gate F6 se considera
 cerrado al cumplir: suites completas sin regresiones + pruebas por ítem + sin pantallas pendientes del TXT.
 Pendiente de fases 7-8 (OpenAPI, CI, E2E, producción/SSL) y del endurecimiento X7.2 (requiere OK del dueño).
+
+## 5. Cleanup, Clean Code y revamp de UI (2026-09, rama `cleanup-ui-2026-09`)
+
+**Cleanup (F1):** se eliminaron los endpoints sentinel `/api/<modulo>/status` (scaffold B1.4; queda
+`/api/health`), se podó código muerto (`httpErrors.badRequest/internal`), se activó `noUnusedLocals`/
+`noUnusedParameters`/`noFallthroughCasesInSwitch` en ambos tsconfig (los errores que afloró se corrigieron
+en src y tests), se agregó `npm run clean` y se eliminaron los `dist/` locales. Anexo TXT R-2026-09-08
+actualizado.
+
+**Clean Code (F2/F3):** backend consolida la coerción numérica en `core/num.ts` y el validador de ids
+BIGINT en `core/validators.ts` (elimina duplicados de orders.mapper/external-orders.serializer/
+order-format y de los DTOs). Frontend tipa el detalle de orden (`EyeData`/`MountData`/`ColorationData`),
+centraliza `qs()` en `core/http`, `PAGE_SIZE` en `core/constants` y quita casts/`Record<unknown>`.
+
+**Revamp UI (F4):** design system en CSS puro (sin dependencias) según anexo v1.4 — `tokens.css` con
+escalas de espacio/tipografía/estados, `base.css` (reset, foco visible, skip-link) y `components.css`
+(botones 42px, tarjetas rounded-xl + sombra v1.4, tablas, formularios, badges pill, modal, grid). Todas
+las pantallas (login, cambio de contraseña, listados por rol con filtros, formulario completo RF-08,
+detalle, gestión de usuarios, alta/edición, estadísticas, 404) usan clases del sistema; se eliminaron los
+estilos inline.
+
+**A11y (F5):** skip-link a `main#contenido`, un `<h1>` por pantalla, landmarks, labels asociados en los
+campos ópticos del formulario, `Modal` con focus trap + `aria-labelledby` + retorno de foco, y respeto de
+`prefers-reduced-motion`.
+
+**Evidencia final:** backend unit **77** + integración **46**, frontend **28**, typecheck y `npm run build`
+OK en ambos, smoke en vivo (health ok, login `admin`=ADMINISTRADOR, frontend 200).
+
+> Revisión visual pendiente del dueño: abrir `http://localhost:5173` y recorrer cada rol
+> (admin/lab1/cliente2/cliente1 · `Cambiar123!`).
