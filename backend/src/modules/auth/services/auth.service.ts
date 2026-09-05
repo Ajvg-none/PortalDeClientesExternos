@@ -1,57 +1,27 @@
-import { UserRole } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
 import { hashPassword, signToken, verifyPassword } from '../../../core/security';
+import { toPublicUser, type PublicUser } from '../../../core/user-projection';
 
-/** Usuario publico expuesto por la API (nunca incluye password_hash). */
-export interface PublicUser {
-  id: string;
-  username: string;
-  email: string | null;
-  role: UserRole;
-  companyName: string | null;
-  phone: string | null;
-  address: string | null;
-  isActive: boolean;
-  mustChangePassword: boolean;
-  createdAt: Date;
-}
-
-export function toPublicUser(user: {
-  id: bigint;
-  username: string;
-  email: string | null;
-  role: UserRole;
-  companyName: string | null;
-  phone: string | null;
-  address: string | null;
-  isActive: boolean;
-  mustChangePassword: boolean;
-  createdAt: Date;
-}): PublicUser {
-  return {
-    id: user.id.toString(),
-    username: user.username,
-    email: user.email,
-    role: user.role,
-    companyName: user.companyName,
-    phone: user.phone,
-    address: user.address,
-    isActive: user.isActive,
-    mustChangePassword: user.mustChangePassword,
-    createdAt: user.createdAt,
-  };
-}
+export type { PublicUser } from '../../../core/user-projection';
 
 /**
  * U2.5 - Login por username + contrasena (DEC-2). Responde token + usuario.
+ * REM-2026-09/R2.4: si el usuario no existe se ejecuta igualmente una
+ * comparacion bcrypt contra un hash dummy para no filtrar por timing si una
+ * cuenta existe o no; en ambos casos la respuesta es el mismo 401 generico.
  */
+const DUMMY_HASH =
+  '$2a$10$w0l3wDwqNqTIsEh/Y28SYuZuVBWG3uGTUA4tn3guMvSKXVgNU3x0a';
+
 export async function loginByUsername(
   username: string,
   password: string,
 ): Promise<{ token: string; user: PublicUser }> {
   const user = await prisma.user.findUnique({ where: { username } });
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
+  const hashToCheck = user?.passwordHash ?? DUMMY_HASH;
+  const ok = await verifyPassword(password, hashToCheck);
+  if (!user || !ok) {
     throw new ApiError(401, 'UNAUTHORIZED', 'Credenciales invalidas');
   }
   if (!user.isActive) {

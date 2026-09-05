@@ -1,7 +1,8 @@
 import { createApp } from './app';
-import { env } from './config/env';
+import { assertEnv, env } from './config/env';
 
 /** Entrypoint del backend (dentro del contenedor, paridad ARQ-2). */
+assertEnv(); // REM-2026-09/R2.3: fail-fast en produccion ante secretos por defecto
 const app = createApp();
 
 app.listen(env.port, () => {

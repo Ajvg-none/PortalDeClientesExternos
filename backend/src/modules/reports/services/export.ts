@@ -8,7 +8,14 @@
  */
 export function csvCell(value: unknown): string {
   if (value === null || value === undefined) return '';
-  const s = String(value);
+  let s = String(value);
+  // REM-2026-09/R2.6: neutraliza celdas con posible formula en Excel (CSV
+  // Injection) anteponiendo apostrofo. Solo "=", "@" y tabulador inicial son
+  // vectores inequivocos; se EXCLUYE "-" para no romper valores opticos
+  // legitimos como esferas negativas (-2.50) ni telefonos con "+".
+  if (/^[=@\t]/.test(s)) {
+    s = `'${s}`;
+  }
   if (/[",\r\n]/.test(s)) {
     return `"${s.replace(/"/g, '""')}"`;
   }

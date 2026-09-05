@@ -1,6 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
+import { dateToDayRange } from '../../../core/dates';
+import { env } from '../../../config/env';
 import {
   orderToAdminDetail,
   orderToAdminListItem,
@@ -105,14 +107,18 @@ function toData(input: CreateOrderInput, company: string, userId: bigint): Prism
   };
 }
 
-function dateToRange(value: string): { start?: Date; end?: Date } {
-  // Solo fecha (YYYY-MM-DD) = dia completo en UTC; con hora = instante exacto
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  if (dateOnly) {
-    return { start: new Date(`${value}T00:00:00.000Z`), end: new Date(`${value}T23:59:59.999Z`) };
+function applyRange(where: Prisma.OrderWhereInput, from?: string, to?: string): Prisma.OrderWhereInput {
+  const createdAt: { gte?: Date; lte?: Date } = {};
+  if (from) {
+    const r = dateToDayRange(from, env.analyticsTimezone); // REM-2026-09/R2.8
+    if (r.start) createdAt.gte = r.start;
   }
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? {} : { start: d, end: d };
+  if (to) {
+    const r = dateToDayRange(to, env.analyticsTimezone);
+    if (r.end) createdAt.lte = r.end;
+  }
+  if (createdAt.gte || createdAt.lte) where.createdAt = createdAt;
+  return where;
 }
 
 /** O3.1/O3.3 - Creacion de orden por el cliente autenticado. */
@@ -158,11 +164,7 @@ export async function listOwnOrders(userId: bigint, filters: ListOrdersFilters) 
   const limit = filters.limit ?? 20;
   const offset = filters.offset ?? 0;
 
-  const where: Prisma.OrderWhereInput = { createdBy: userId };
-  const range: { createdAt?: { gte?: Date; lte?: Date } } = {};
-  if (filters.from) range.createdAt = { ...range.createdAt, gte: dateToRange(filters.from).start };
-  if (filters.to) range.createdAt = { ...range.createdAt, lte: dateToRange(filters.to).end };
-  if (range.createdAt) where.createdAt = range.createdAt;
+  const where = applyRange({ createdBy: userId }, filters.from, filters.to);
 
   const [total, rows] = await Promise.all([
     prisma.order.count({ where }),
@@ -203,11 +205,7 @@ export async function listAllOrders(role: ViewRole, filters: ListOrdersFilters) 
   const limit = filters.limit ?? 20;
   const offset = filters.offset ?? 0;
 
-  const where: Prisma.OrderWhereInput = {};
-  const range: { createdAt?: { gte?: Date; lte?: Date } } = {};
-  if (filters.from) range.createdAt = { ...range.createdAt, gte: dateToRange(filters.from).start };
-  if (filters.to) range.createdAt = { ...range.createdAt, lte: dateToRange(filters.to).end };
-  if (range.createdAt) where.createdAt = range.createdAt;
+  const where = applyRange({}, filters.from, filters.to);
   if (filters.company?.trim()) {
     where.company = { contains: filters.company.trim(), mode: 'insensitive' };
   }

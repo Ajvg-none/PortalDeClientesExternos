@@ -172,6 +172,10 @@ es un snapshot documental de la Fase 1 (migración `20260903202850_init`).
   integración B1.3 (incluida la definición exacta `indexdef`).
 - **No cambiar el modelo silenciosamente**: cualquier cambio de esquema requiere nueva migración, actualizar
   este snapshot y anotar la decisión en el anexo del TXT.
+- **Delta 2026-09 (remediación REM-2026-09/R2.2):** `users.updated_at` y `orders.updated_at` llevan
+  `@updatedAt` en Prisma para que reflejen la última modificación real de la fila. Es un atributo solo de
+  Prisma: **el DDL y la migración `20260903202850_init` no cambian** (mismo `DEFAULT CURRENT_TIMESTAMP`); el
+  snapshot del modelo en 6.1 queda actualizado, el SQL de 6.2 intacto.
 
 ### 6.1 `backend/prisma/schema.prisma` (modelo Prisma — tipos de datos)
 
@@ -220,7 +224,7 @@ model User {
   // Delta anexo v1.1 (DEC-6): cambio obligatorio de contrasena en primer acceso
   mustChangePassword Boolean  @default(true) @map("must_change_password")
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
   orders             Order[]
 
   @@map("users")
@@ -286,7 +290,7 @@ model Order {
   createdBy                   BigInt?   @map("created_by")
   creator                     User?     @relation(fields: [createdBy], references: [id])
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([company], map: "idx_orders_company")
   @@index([syncStatus], map: "idx_orders_sync_status")

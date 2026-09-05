@@ -22,3 +22,8 @@ pgdata/
 data/
 certbot/
 letsencrypt/
+
+# Artefactos/herramientas locales del agente (REM-2026-09/R4)
+.agents/
+skills-lock.json
+comandos.txt

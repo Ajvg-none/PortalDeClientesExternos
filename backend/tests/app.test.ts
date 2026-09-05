@@ -36,6 +36,16 @@ describe('B1.4 - API Express modular', () => {
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ code: 'BAD_REQUEST' });
   });
+
+  test('REM-2026-09/R2.5: body mayor al limite (1mb) responde 413 PAYLOAD_TOO_LARGE', async () => {
+    const big = JSON.stringify({ data: 'x'.repeat(1_200_000) });
+    const res = await request(app)
+      .post('/api/health')
+      .set('Content-Type', 'application/json')
+      .send(big);
+    expect(res.status).toBe(413);
+    expect(res.body).toMatchObject({ code: 'PAYLOAD_TOO_LARGE' });
+  });
 });
 
 describe('B1.4 - errorHandler (unitario)', () => {
@@ -60,5 +70,16 @@ describe('B1.4 - errorHandler (unitario)', () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ code: 'INTERNAL_ERROR', message: 'Error interno del servidor' });
     spy.mockRestore();
+  });
+
+  test('REM-2026-09/R2.5: error entity.too.large responde 413 JSON', () => {
+    const res = mockResponse();
+    const next = jest.fn() as NextFunction;
+    errorHandler({ type: 'entity.too.large' }, {} as Request, res, next);
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(res.json).toHaveBeenCalledWith({
+      code: 'PAYLOAD_TOO_LARGE',
+      message: 'El cuerpo de la solicitud excede el limite permitido',
+    });
   });
 });

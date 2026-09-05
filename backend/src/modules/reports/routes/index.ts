@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../controllers/status.controller';
+import { statusController } from '../../../core/status-controller';
 import { dashboard, exportOrders } from '../controllers/reports.controller';
 import { exportOrdersValidators } from '../dto/reports.dto';
 import { validate } from '../../../core/middlewares/validate';

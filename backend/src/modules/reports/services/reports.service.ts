@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { env } from '../../../config/env';
-import { opticalSummary } from '../../orders/services/orders.mapper';
+import { dateToDayRange } from '../../../core/dates';
+import { opticalSummary } from '../../../core/order-format';
 import { buildCsv } from './export';
 
 /**
@@ -74,24 +75,18 @@ const CSV_HEADERS = [
   'Observaciones',
 ];
 
-function dateRange(value: string, edge: 'start' | 'end'): Date | undefined {
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  if (dateOnly) {
-    return edge === 'start'
-      ? new Date(`${value}T00:00:00.000Z`)
-      : new Date(`${value}T23:59:59.999Z`);
-  }
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d;
-}
-
 /** E5.2 - Exporta el listado de ordenes segun los filtros aplicados (RF-34). */
 export async function buildOrdersExport(filters: ExportFilters): Promise<string> {
   const where: Prisma.OrderWhereInput = {};
-  const range: Prisma.OrderWhereInput['createdAt'] = {};
-  if (filters.from) range.gte = dateRange(filters.from, 'start');
-  if (filters.to) range.lte = dateRange(filters.to, 'end');
-  if (filters.from || filters.to) where.createdAt = range;
+  // REM-2026-09/R2.8: dia calendario interpretado en ANALYTICS_TIMEZONE
+  if (filters.from) {
+    const r = dateToDayRange(filters.from, env.analyticsTimezone);
+    if (r.start) where.createdAt = { ...(where.createdAt as object), gte: r.start };
+  }
+  if (filters.to) {
+    const r = dateToDayRange(filters.to, env.analyticsTimezone);
+    if (r.end) where.createdAt = { ...((where.createdAt as object) ?? {}), lte: r.end };
+  }
   if (filters.company?.trim()) where.company = { contains: filters.company.trim(), mode: 'insensitive' };
   if (filters.syncStatus) where.syncStatus = filters.syncStatus;
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { statusController } from '../controllers/status.controller';
+import { statusController } from '../../../core/status-controller';
 import { changeMyPassword, login } from '../controllers/auth.controller';
 import { changePasswordValidators, loginValidators } from '../dto/auth.dto';
 import { validate } from '../../../core/middlewares/validate';

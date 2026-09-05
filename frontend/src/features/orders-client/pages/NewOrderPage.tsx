@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ordersApi, type OrderCreateInput } from '../api/orders';
 import { useAuth } from '../../../app/AuthContext';
+import { Modal } from '../../../shared/Modal';
 import type { OrderDetail } from '../../../core/types';
 
 /**
@@ -183,42 +184,35 @@ export function NewOrderPage() {
       </button>
 
       {confirming && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => { if (e.target === e.currentTarget) setConfirming(false); }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}
-        >
-          <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '480px', maxWidth: '92vw', maxHeight: '85vh', overflow: 'auto' }}>
-            <h3 style={{ marginTop: 0 }}>Resumen de la orden</h3>
-            <p>N° de orden: <strong>{String(form.orderNumber ?? '')}</strong></p>
-            <p>Empresa: <strong>{user?.companyName}</strong></p>
-            <p>Paciente: <strong>{String(form.patient ?? '')}</strong></p>
-            <SummaryEye side="OD" get={eyeValue} />
-            <SummaryEye side="OI" get={eyeValue} />
-            {form.treatment ? <p>Tratamiento: {String(form.treatment)}</p> : null}
-            {form.mountType || form.mountBrand ? (
-              <p>Montura: {[form.mountType, form.mountBrand, form.mountModel, form.mountColor].filter(Boolean).join(' · ')}</p>
-            ) : null}
-            {form.colorationColor ? <p>Coloración: {[form.colorationColor, form.colorationUnicolor ? 'unicolor' : null, form.colorationDegradadoPercent ? `${String(form.colorationDegradadoPercent)}% degradado` : null].filter(Boolean).join(' · ')}</p> : null}
-            {form.observations ? <p>Observaciones: {String(form.observations)}</p> : null}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setConfirming(false)}
-                style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Atrás
-              </button>
-              <button
-                onClick={submit}
-                disabled={saving}
-                style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-              >
-                {saving ? 'Enviando…' : 'Confirmar envío'}
-              </button>
-            </div>
+        <Modal onClose={() => setConfirming(false)} width={480}>
+          <h3 style={{ marginTop: 0 }}>Resumen de la orden</h3>
+          <p>N° de orden: <strong>{String(form.orderNumber ?? '')}</strong></p>
+          <p>Empresa: <strong>{user?.companyName}</strong></p>
+          <p>Paciente: <strong>{String(form.patient ?? '')}</strong></p>
+          <SummaryEye side="OD" get={eyeValue} />
+          <SummaryEye side="OI" get={eyeValue} />
+          {form.treatment ? <p>Tratamiento: {String(form.treatment)}</p> : null}
+          {form.mountType || form.mountBrand ? (
+            <p>Montura: {[form.mountType, form.mountBrand, form.mountModel, form.mountColor].filter(Boolean).join(' · ')}</p>
+          ) : null}
+          {form.colorationColor ? <p>Coloración: {[form.colorationColor, form.colorationUnicolor ? 'unicolor' : null, form.colorationDegradadoPercent ? `${String(form.colorationDegradadoPercent)}% degradado` : null].filter(Boolean).join(' · ')}</p> : null}
+          {form.observations ? <p>Observaciones: {String(form.observations)}</p> : null}
+          <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => setConfirming(false)}
+              style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontWeight: 600, cursor: 'pointer' }}
+            >
+              Atrás
+            </button>
+            <button
+              onClick={submit}
+              disabled={saving}
+              style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+            >
+              {saving ? 'Enviando…' : 'Confirmar envío'}
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

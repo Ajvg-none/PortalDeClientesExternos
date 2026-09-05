@@ -4,7 +4,9 @@ import { body } from 'express-validator';
 
 export const loginValidators = [
   body('username').trim().isLength({ min: 1, max: 100 }).withMessage('username es obligatorio'),
-  body('password').isString().withMessage('password es obligatoria'),
+  // REM-2026-09/R2.4: cap de longitud para no forzar bcrypt con entradas enormes
+  // (jsonwebtoken/bcryptjs truncan en 72 bytes; el max alinea login con change-password)
+  body('password').isString().isLength({ min: 1, max: 72 }).withMessage('password es obligatoria'),
 ];
 
 export const changePasswordValidators = [

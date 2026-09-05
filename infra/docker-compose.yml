@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: portal
       POSTGRES_DB: portal
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Crea la BD de pruebas portal_test al inicializar el volumen
@@ -34,6 +34,8 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
+      JWT_SECRET: dev-jwt-secret-change-me
+      JWT_EXPIRES_IN: 8h
       DATABASE_URL: postgresql://portal:portal@db:5432/portal?schema=public
       TEST_DATABASE_URL: postgresql://portal:portal@db:5432/portal_test?schema=public
     ports:

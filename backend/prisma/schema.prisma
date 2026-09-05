@@ -42,7 +42,9 @@ model User {
   // Delta anexo v1.1 (DEC-6): cambio obligatorio de contrasena en primer acceso
   mustChangePassword Boolean  @default(true) @map("must_change_password")
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  // REM-2026-09: @updatedAt a nivel Prisma (sin cambio de DDL) para que la
+  // columna updated_at refleje la ultima modificacion real de la fila.
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
   orders             Order[]
 
   @@map("users")
@@ -108,7 +110,9 @@ model Order {
   createdBy                   BigInt?   @map("created_by")
   creator                     User?     @relation(fields: [createdBy], references: [id])
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  // REM-2026-09: @updatedAt a nivel Prisma (sin cambio de DDL). Se actualiza
+  // al sincronizar la orden (PUT /sync) o ante cualquier update futuro.
+  updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([company], map: "idx_orders_company")
   @@index([syncStatus], map: "idx_orders_sync_status")

@@ -2,7 +2,7 @@ import { UserRole, Prisma } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
 import { hashPassword } from '../../../core/security';
-import { toPublicUser, type PublicUser } from '../../auth/services/auth.service';
+import { toPublicUser, type PublicUser } from '../../../core/user-projection';
 
 /**
  * Servicios de administracion de usuarios (U2.6/U2.7, RF-23…RF-27).

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../controllers/status.controller';
+import { statusController } from '../../../core/status-controller';
 import { authenticate } from '../../auth/middlewares/authenticate';
 import { requireRole } from '../../auth/middlewares/require-role';
 import { passwordChangeRequired } from '../../auth/middlewares/password-change-required';

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { statusController } from '../controllers/status.controller';
+import { statusController } from '../../../core/status-controller';
 import { pending, sync } from '../controllers/external-orders.controller';
 import { pendingOrdersValidators, syncValidators } from '../dto/external-orders.dto';
 import { validate } from '../../../core/middlewares/validate';

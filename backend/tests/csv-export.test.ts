@@ -41,4 +41,14 @@ describe('buildCsv', () => {
     const csv = buildCsv(['A', 'B'], []);
     expect(csv).toBe('\ufeffA,B\r\n');
   });
+
+  test('REM-2026-09/R2.6: neutraliza celdas con posible formula (CSV Injection)', () => {
+    expect(csvCell('=SUM(A1:A9)')).toBe("'=SUM(A1:A9)");
+    expect(csvCell('@cmd')).toBe("'@cmd");
+    expect(csvCell('\tcmd')).toBe("'\tcmd");
+    // datos legitimios NO se alteran: esferas negativas, telefonos con +, etc.
+    expect(csvCell('-2.50')).toBe('-2.50');
+    expect(csvCell('+56 9 1234 5678')).toBe('+56 9 1234 5678');
+    expect(csvCell('ORD-1')).toBe('ORD-1');
+  });
 });

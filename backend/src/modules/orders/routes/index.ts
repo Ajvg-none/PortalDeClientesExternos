@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../controllers/status.controller';
+import { statusController } from '../../../core/status-controller';
 import { checkOrderNumber, create, getByRole, listByRole } from '../controllers/orders.controller';
 import {
   createOrderValidators,

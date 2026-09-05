@@ -739,4 +739,37 @@ IMPLEMENTACION
 - UI y textos en espanol; no inventar valores fuera de esta paleta salvo aprobacion registrada en el anexo.
 
 
+DECISIONES DE LA REMEDIACION INTEGRAL 2026-09 (REVISION DE FASES 1-6)
+(Registro fechado. Complementa los anexos anteriores sin modificar RF. Surge de la auditoria REM-2026-09;
+el detalle operativo esta en PLAN_DE_DESARROLLO.md, bloque REM-2026-09, y en AGENTS.md.)
+
+- R-2026-09-01 (aclaracion a PC-4, contrato con el middleware): el campo 'date' de la respuesta canonica se
+  entrega en ISO 8601 UTC (formato toISOString, p. ej. 2026-08-28T10:30:00.000Z). Se aprueba el "UTC puro"
+  que PC-4 condicionaba a acuerdo: la serializacion vigente (external-orders.serializer + snapshot de test)
+  queda como contrato oficial de v1. Si el middleware requiere el offset de otra zona, se registra un cambio
+  de contrato acordado.
+- R-2026-09-02 (filtros por rango de fechas): los filtros 'from'/'to' de los listados y de la exportacion se
+  interpretan como dias calendario en ANALYTICS_TIMEZONE (la misma zona de las estadisticas mensuales E5.1),
+  no en UTC crudo. La UI muestra las fechas en la zona del navegador; se recomienda configurar la zona del
+  negocio. Afecta a orders.service (O3.5/M4.7), reports.service (E5.2) y al modulo core/dates.
+- R-2026-09-03 (actualizacion de 'updated_at'): users.updated_at y orders.updated_at usan @updatedAt de Prisma
+  (atributo solo de Prisma; el DDL y la migracion init no cambian). Ahora updated_at refleja la ultima
+  modificacion real (p. ej. un PUT /sync actualiza orders.updated_at).
+- R-2026-09-04 (exportacion CSV): las celdas cuyo valor inicia con '=', '@' o tabulador se neutralizan con un
+  apostrofo inicial para mitigar CSV Injection en Excel. NO se alteran esferas negativas (-2.50) ni telefonos
+  con '+' para no romper datos opticos legitimos.
+- R-2026-09-05 (test de integracion): el runner exige TEST_DATABASE_URL explicita y una base cuyo nombre
+  termine en '_test'; se elimino el fallback a DATABASE_URL que podia resetear la BD de desarrollo.
+- R-2026-09-06 (validacion async RF-10): se agrega GET /api/orders/order-number/:value (autenticado, solo
+  CLIENTE_EXTERNO) que devuelve { available } para que el formulario advierta antes de enviar. No cambia el
+  contrato PULL ni la unicidad global (el 409 del POST se mantiene).
+- R-2026-09-07 (secretos): JWT_SECRET/DATABASE_URL por defecto son de desarrollo; en NODE_ENV=production el
+  arranque falla si JWT_SECRET falta o es el placeholder de dev, o si DATABASE_URL no esta definida.
+- R-2026-09-08 (sentinel /status): los endpoints /api/<modulo>/status quedan accesibles (sentinel estructural
+  B1.4). Para v1 se mantienen; su retiro o restriccion se evalua en el endurecimiento X7.2.
+- R-2026-09-09 (login): la respuesta de credenciales invalidas es identica para usuario inexistente o
+  contrasena incorrecta, y se ejecuta una comparacion bcrypt dummy para igualar el tiempo de respuesta.
+  password de login con maximo 72 caracteres (alineado con bcrypt/change-password).
+
+
 

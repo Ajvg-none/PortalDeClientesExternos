@@ -86,4 +86,12 @@ describe('App - sesion y primer acceso', () => {
     render(<App />);
     expect(await screen.findByRole('button', { name: /ingresar/i })).toBeInTheDocument();
   });
+
+  it('F6.1/REM-2026-09: ruta inexistente muestra la pantalla 404', async () => {
+    session.setToken('t');
+    session.setUser({ ...CLIENTE, mustChangePassword: false });
+    go('/ruta-que-no-existe');
+    render(<App />);
+    expect(await screen.findByText('Página no encontrada.')).toBeInTheDocument();
+  });
 });

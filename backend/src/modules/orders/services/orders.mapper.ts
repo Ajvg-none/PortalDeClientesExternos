@@ -1,4 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { opticalSummary } from '../../../core/order-format';
+// Re-export para compatibilidad de callers (tests) que importan el resumen
+// desde el mapper de orders (REM-2026-09/R4).
+export { opticalSummary } from '../../../core/order-format';
 
 /**
  * Proyecciones de orden (O3.4, RF-05/RF-16).
@@ -11,23 +15,6 @@ function num(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   const n = Number(value);
   return Number.isNaN(n) ? null : n;
-}
-
-function fixed(value: number | null): string | null {
-  return value === null ? null : value.toFixed(2);
-}
-
-/**
- * RF-05 - Resumen rapido de datos opticos, p. ej. "OD -2.50 / OI -2.25".
- * Maneja ojos vacios: si un ojo no tiene esfera, se omite esa parte.
- */
-export function opticalSummary(order: Pick<OrderRow, 'odSphere' | 'oiSphere'>): string {
-  const parts: string[] = [];
-  const od = fixed(num(order.odSphere));
-  const oi = fixed(num(order.oiSphere));
-  if (od !== null) parts.push(`OD ${od}`);
-  if (oi !== null) parts.push(`OI ${oi}`);
-  return parts.join(' / ');
 }
 
 /** RF-16 - Detalle completo (todos los datos ingresados, sin sync_status). */

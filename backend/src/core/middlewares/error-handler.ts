@@ -21,6 +21,11 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     res.status(400).json({ code: 'BAD_REQUEST', message: 'JSON invalido en el cuerpo de la solicitud' });
     return;
   }
+  // REM-2026-09/R2.5: body por encima del limite (express.json 1mb) -> 413
+  if (err !== null && typeof err === 'object' && (err as { type?: string }).type === 'entity.too.large') {
+    res.status(413).json({ code: 'PAYLOAD_TOO_LARGE', message: 'El cuerpo de la solicitud excede el limite permitido' });
+    return;
+  }
   // eslint-disable-next-line no-console
   console.error('[errorHandler]', err);
   res.status(500).json({ code: 'INTERNAL_ERROR', message: 'Error interno del servidor' });

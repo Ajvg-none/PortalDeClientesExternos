@@ -13,14 +13,19 @@ function isBlank(v: unknown): boolean {
   return v === undefined || v === null || v === '';
 }
 
+// Columna DECIMAL(6,2) => max 9999.99; el degradado usa DECIMAL(5,2) => max
+// 999.99. REM-2026-09: un valor fuera de rango producia un 500 de BD; se
+// valida para responder 400 (RF-09 permite vacio, no valores imposibles).
 const numericRule = (field: string) =>
   body(field)
     .custom((value: unknown) => {
       if (isBlank(value)) return true; // campo opcional (RF-09)
       const n = Number(value);
-      return !Number.isNaN(n) && Number.isFinite(n);
+      if (Number.isNaN(n) || !Number.isFinite(n)) return false;
+      const max = field === 'colorationDegradadoPercent' ? 999.99 : 9999.99;
+      return Math.abs(n) <= max;
     })
-    .withMessage(`${field} debe ser un numero o dejarse vacio`);
+    .withMessage(`${field} debe ser un numero valido o dejarse vacio`);
 
 const optionalText = (field: string, max: number) =>
   body(field)

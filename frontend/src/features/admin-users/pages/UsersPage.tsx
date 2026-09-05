@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usersApi, type UsersList } from '../api/users';
 import { Pager } from '../../../shared/Pager';
+import { Modal } from '../../../shared/Modal';
 import type { AuthUser } from '../../../core/types';
 
 const LIMIT = 20;
@@ -174,10 +175,10 @@ export function UsersPage() {
               ? `El usuario "${actionUser.username}" perderá el acceso de inmediato. Sus órdenes históricas se conservan (baja lógica, DEC-4).`
               : `El usuario "${actionUser.username}" volverá a tener acceso.`}
           </p>
-          <ModalButtons>
+          <div style={footerStyle}>
             <button onClick={() => setActionUser(null)} style={ghostBtn}>Cancelar</button>
             <button onClick={toggle} style={dangerBtn}>{actionUser.isActive ? 'Dar de baja' : 'Reactivar'}</button>
-          </ModalButtons>
+          </div>
         </Modal>
       )}
 
@@ -189,37 +190,19 @@ export function UsersPage() {
           <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
             El usuario deberá cambiarla en su próximo inicio de sesión (DEC-6).
           </p>
-          <ModalButtons>
+          <div style={footerStyle}>
             <button onClick={() => { setResetUser(null); setNewPassword(''); }} style={ghostBtn}>Cancelar</button>
             <button onClick={doReset} disabled={newPassword.length < 6} style={primaryBtn}>Restablecer</button>
-          </ModalButtons>
+          </div>
         </Modal>
       )}
     </div>
   );
 }
 
-function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}
-    >
-      <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '440px', maxWidth: '90vw' }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function ModalButtons({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>{children}</div>;
-}
-
 const th: React.CSSProperties = { textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid var(--color-border)' };
 const td: React.CSSProperties = { padding: '12px 16px' };
+const footerStyle: React.CSSProperties = { display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' };
 const filterLabel: React.CSSProperties = { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', marginBottom: '4px' };
 const filterInput: React.CSSProperties = { height: '38px', padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '14px' };
 const filterBtn: React.CSSProperties = { height: '38px', padding: '0 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontWeight: 600, cursor: 'pointer' };
