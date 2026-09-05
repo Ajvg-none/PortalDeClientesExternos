@@ -1,7 +1,7 @@
 /**
  * M4.1 - Middleware de API Key de integracion (X-API-Key).
  */
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ApiError } from '../src/core/errors';
 import { createApiKeyAuth } from '../src/modules/external-orders/middlewares/api-key-auth';
 

@@ -14,14 +14,7 @@ export class ApiError extends Error {
   }
 }
 
-export const httpErrors = {
-  notFound(message = 'Ruta no encontrada'): ApiError {
-    return new ApiError(404, 'NOT_FOUND', message);
-  },
-  badRequest(message = 'Solicitud invalida'): ApiError {
-    return new ApiError(400, 'BAD_REQUEST', message);
-  },
-  internal(message = 'Error interno del servidor'): ApiError {
-    return new ApiError(500, 'INTERNAL_ERROR', message);
-  },
-} as const;
+/** Fabrica de errores de ruta no encontrada (404 JSON estandar). */
+export function httpNotFound(message = 'Ruta no encontrada'): ApiError {
+  return new ApiError(404, 'NOT_FOUND', message);
+}

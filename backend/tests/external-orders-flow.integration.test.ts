@@ -31,10 +31,10 @@ describe('Fase 4 - Contrato PULL con el middleware (integrador)', () => {
   let optiBToken = '';
 
   beforeAll(async () => {
-    const admin = await prisma.user.create({
+    await prisma.user.create({
       data: { username: 'admin', passwordHash: HASH, role: UserRole.ADMINISTRADOR, mustChangePassword: false },
     });
-    const lab = await prisma.user.create({
+    await prisma.user.create({
       data: { username: 'lab', passwordHash: HASH, role: UserRole.LABORATORIO, mustChangePassword: false },
     });
     const optiA = await prisma.user.create({

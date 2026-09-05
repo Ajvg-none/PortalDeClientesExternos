@@ -1,7 +1,7 @@
 /**
  * M4.2/M4.3/M4.5 - Servicio del contrato PULL con prisma mockeado.
  */
-import { Prisma, SyncStatus } from '@prisma/client';
+import { SyncStatus } from '@prisma/client';
 
 jest.mock('../src/core/prisma', () => ({
   prisma: {

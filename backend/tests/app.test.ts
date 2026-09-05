@@ -6,8 +6,6 @@ import { errorHandler } from '../src/core/middlewares/error-handler';
 
 const app = createApp();
 
-const MODULES = ['auth', 'users', 'orders', 'external-orders', 'reports'];
-
 describe('B1.4 - API Express modular', () => {
   test('GET /api/health responde 200 con { status: "ok" }', async () => {
     const res = await request(app).get('/api/health');
@@ -15,10 +13,10 @@ describe('B1.4 - API Express modular', () => {
     expect(res.body).toEqual({ status: 'ok' });
   });
 
-  test.each(MODULES)('el router del modulo %s queda montado en /api/%s/status', async (mod) => {
-    const res = await request(app).get(`/api/${mod}/status`);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ module: mod });
+  test('los antiguos sentinel /api/<modulo>/status ya no existen (404 JSON)', async () => {
+    const res = await request(app).get('/api/auth/status');
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ code: 'NOT_FOUND' });
   });
 
   test('una ruta desconocida responde 404 con formato JSON { code, message }', async () => {

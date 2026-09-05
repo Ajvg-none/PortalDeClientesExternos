@@ -765,8 +765,10 @@ el detalle operativo esta en PLAN_DE_DESARROLLO.md, bloque REM-2026-09, y en AGE
   contrato PULL ni la unicidad global (el 409 del POST se mantiene).
 - R-2026-09-07 (secretos): JWT_SECRET/DATABASE_URL por defecto son de desarrollo; en NODE_ENV=production el
   arranque falla si JWT_SECRET falta o es el placeholder de dev, o si DATABASE_URL no esta definida.
-- R-2026-09-08 (sentinel /status): los endpoints /api/<modulo>/status quedan accesibles (sentinel estructural
-  B1.4). Para v1 se mantienen; su retiro o restriccion se evalua en el endurecimiento X7.2.
+- R-2026-09-08 (sentinel /status): los endpoints /api/<modulo>/status (esqueleto estructural de la Fase 1)
+  se ELIMINARON en la limpieza de 2026-09. Queda solo GET /api/health como healthcheck. No son parte de
+  ningun requisito funcional; su retiro reduce la superficie publica. (Reemplaza la decision previa de
+  retirarlos en X7.2.)
 - R-2026-09-09 (login): la respuesta de credenciales invalidas es identica para usuario inexistente o
   contrasena incorrecta, y se ejecuta una comparacion bcrypt dummy para igualar el tiempo de respuesta.
   password de login con maximo 72 caracteres (alineado con bcrypt/change-password).

@@ -4,7 +4,7 @@
  */
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
-import { PrismaClient, SyncStatus, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { createApp } from '../src/app';
 
 const app = createApp();

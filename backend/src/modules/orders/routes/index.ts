@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../../../core/status-controller';
 import { checkOrderNumber, create, getByRole, listByRole } from '../controllers/orders.controller';
 import {
   createOrderValidators,
@@ -23,9 +22,6 @@ import { passwordChangeRequired } from '../../auth/middlewares/password-change-r
  * Inmutabilidad (RF-17): no existen rutas de edicion ni cancelacion.
  */
 const router = Router();
-
-// Sentinel estructural (Fase 1/B1.4)
-router.get('/status', statusController('orders'));
 
 // Autenticacion + primer acceso (DEC-6)
 router.use(authenticate);

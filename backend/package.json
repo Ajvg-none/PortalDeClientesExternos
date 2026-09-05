@@ -11,6 +11,7 @@
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
     "test": "jest --runInBand",
     "test:integration": "node scripts/integration-tests.mjs",
     "test:all": "npm run test && npm run test:integration"

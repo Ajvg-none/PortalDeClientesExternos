@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { statusController } from '../../../core/status-controller';
 import { pending, sync } from '../controllers/external-orders.controller';
 import { pendingOrdersValidators, syncValidators } from '../dto/external-orders.dto';
 import { validate } from '../../../core/middlewares/validate';
@@ -11,9 +10,6 @@ import { apiKeyAuth } from '../middlewares/api-key-auth';
  * autentica con la API Key estatica del portal (header X-API-Key, RF-39/41).
  */
 const router = Router();
-
-// Sentinel estructural (Fase 1/B1.4)
-router.get('/status', statusController('external-orders'));
 
 // A partir de aca el contrato exige la API Key (RF-39/41)
 router.use(apiKeyAuth);

@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../../../core/status-controller';
 import { dashboard, exportOrders } from '../controllers/reports.controller';
 import { exportOrdersValidators } from '../dto/reports.dto';
 import { validate } from '../../../core/middlewares/validate';
@@ -13,9 +12,6 @@ import { passwordChangeRequired } from '../../auth/middlewares/password-change-r
  * Estadisticas y exportacion: SOLO ADMINISTRADOR (RF-33/RF-34).
  */
 const router = Router();
-
-// Sentinel estructural (Fase 1/B1.4)
-router.get('/status', statusController('reports'));
 
 // Autenticacion + primer acceso + rol admin
 router.use(authenticate);

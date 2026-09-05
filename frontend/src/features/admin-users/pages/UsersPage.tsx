@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usersApi, type UsersList } from '../api/users';
 import { Pager } from '../../../shared/Pager';
@@ -41,8 +41,6 @@ export function UsersPage() {
       setError(e instanceof Error ? e.message : 'Error al cargar usuarios');
     }
   }
-
-  const refresh = useCallback(() => load(0), [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     load(0);

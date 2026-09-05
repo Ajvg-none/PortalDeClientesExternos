@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
-import { statusController } from '../../../core/status-controller';
 import { authenticate } from '../../auth/middlewares/authenticate';
 import { requireRole } from '../../auth/middlewares/require-role';
 import { passwordChangeRequired } from '../../auth/middlewares/password-change-required';
@@ -27,9 +26,6 @@ import {
  * Sin DELETE fisico (DEC-4): la baja se hace con PATCH /:id/status.
  */
 const router = Router();
-
-// Sentinel estructural (Fase 1/B1.4)
-router.get('/status', statusController('users'));
 
 // A partir de aca: autenticacion + primer acceso (U2.8) + rol admin
 router.use(authenticate);

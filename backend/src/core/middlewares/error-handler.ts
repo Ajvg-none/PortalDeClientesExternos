@@ -1,11 +1,11 @@
-import { ApiError, httpErrors } from '../errors';
+import { ApiError, httpNotFound } from '../errors';
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 
 /**
  * Middleware de ruta no encontrada: responde 404 en formato JSON estandar.
  */
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
-  next(httpErrors.notFound(`Ruta no encontrada: ${req.method} ${req.originalUrl}`));
+  next(httpNotFound(`Ruta no encontrada: ${req.method} ${req.originalUrl}`));
 };
 
 /**
