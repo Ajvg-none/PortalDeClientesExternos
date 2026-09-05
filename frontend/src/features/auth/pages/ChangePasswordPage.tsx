@@ -35,32 +35,45 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-canvas)' }}>
-      <form
-        onSubmit={onSubmit}
-        style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)', padding: '32px', width: '380px' }}
-      >
-        <h1 style={{ margin: '0 0 8px' }}>Cambio de contraseña</h1>
-        <p style={{ color: 'var(--color-text-secondary)', margin: '0 0 24px' }}>
-          Por seguridad, debes cambiar tu contraseña temporal antes de continuar.
-        </p>
+    <div className="auth-shell">
+      <form onSubmit={onSubmit} className="auth-card" noValidate>
+        <h1>Cambio de contraseña</h1>
+        <p className="auth-card__sub">Por seguridad, debes cambiar tu contraseña temporal antes de continuar.</p>
 
-        <label htmlFor="current-password" style={labelStyle}>Contraseña actual</label>
-        <input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" style={inputStyle} />
+        <div className="form-field">
+          <label htmlFor="current-password">Contraseña actual</label>
+          <input
+            id="current-password"
+            className="control"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+        </div>
 
-        <label htmlFor="new-password" style={{ ...labelStyle, marginTop: '16px' }}>Nueva contraseña</label>
-        <input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" style={inputStyle} />
+        <div className="form-field">
+          <label htmlFor="new-password">Nueva contraseña</label>
+          <input
+            id="new-password"
+            className="control"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </div>
 
-        {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)', fontSize: '13px', marginTop: '12px' }}>{error}</p>}
+        {error && (
+          <p role="alert" className="error">
+            {error}
+          </p>
+        )}
 
-        <button type="submit" disabled={loading || !currentPassword || newPassword.length < 6} style={submitStyle}>
+        <button type="submit" className="btn btn--primary" disabled={loading || !currentPassword || newPassword.length < 6} style={{ width: '100%', marginTop: 24 }}>
           {loading ? 'Guardando…' : 'Guardar y continuar'}
         </button>
       </form>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', marginBottom: '6px' };
-const inputStyle: React.CSSProperties = { width: '100%', height: '42px', padding: '0 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '14px' };
-const submitStyle: React.CSSProperties = { marginTop: '24px', width: '100%', height: '42px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' };

@@ -1,0 +1,92 @@
+/* ============================================================
+ * Base (REM-cleanup 2026-09/F4) - reset, layout global, a11y
+ * ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--color-text-body);
+  background: var(--color-canvas);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-text);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 var(--sp-4);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Foco visible (WCAG: minimo 3:1 y 2-3px) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--control-radius);
+}
+
+/* Skip link (a11y): primer elemento enfocable */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: 0 0 var(--control-radius) 0;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+main {
+  display: block;
+}
+
+/* Contenedor de contenido (max-w-7xl centrado, anexo v1.4) */
+.page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--sp-6);
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--sp-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

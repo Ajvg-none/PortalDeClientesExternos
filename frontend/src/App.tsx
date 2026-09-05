@@ -14,6 +14,8 @@ import { UsersPage } from './features/admin-users/pages/UsersPage';
 import { UserFormPage } from './features/admin-users/pages/UserFormPage';
 import { StatsPage } from './features/admin-stats/pages/StatsPage';
 import './styles/tokens.css';
+import './styles/base.css';
+import './styles/components.css';
 
 /** App raiz (Fase 6): rutas por rol + Top Header Layout (anexo v1.4). */
 export function App() {
@@ -113,6 +115,7 @@ function AppShell() {
   if (!user) return null;
   return (
     <>
+      <a className="skip-link" href="#contenido">Saltar al contenido</a>
       <TopBar role={user.role} username={user.username} />
       <Outlet />
     </>

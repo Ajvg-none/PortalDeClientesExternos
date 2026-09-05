@@ -13,8 +13,7 @@ export function StatsPage() {
     reportsApi.dashboard().then(setData).catch((e) => setError(e instanceof Error ? e.message : 'Error'));
   }, []);
 
-  // REM-2026-09/RF-34: descarga autenticada (fetch + Authorization). Un
-  // window.open no adjunta el JWT y el endpoint protegido responderia 401.
+  // REM-2026-09/RF-34: descarga autenticada (fetch + Authorization).
   async function exportCsv() {
     setError('');
     setExporting(true);
@@ -28,58 +27,60 @@ export function StatsPage() {
     }
   }
 
-  if (error) return <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>;
-  if (!data) return <p>Cargando…</p>;
+  if (error) return <p role="alert" className="error">{error}</p>;
+  if (!data) return <p className="muted">Cargando…</p>;
 
-  const maxMonth = Math.max(1, ...data.ordersByMonth.map((m: { total: number }) => m.total));
+  const maxMonth = Math.max(1, ...data.ordersByMonth.map((m) => m.total));
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2>Estadísticas</h2>
-        <button onClick={exportCsv} disabled={exporting} style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+      <div className="page-head">
+        <h1>Estadísticas</h1>
+        <button className="btn btn--primary" onClick={exportCsv} disabled={exporting}>
           {exporting ? 'Exportando…' : 'Exportar CSV'}
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <Card label="Total órdenes" value={String(data.statusSummary.total)} />
-        <Card label="Pendientes" value={String(data.statusSummary.pendiente)} />
-        <Card label="Sincronizadas" value={String(data.statusSummary.sincronizadas)} />
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card__label">Total órdenes</div>
+          <div className="stat-card__value">{data.statusSummary.total}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card__label">Pendientes</div>
+          <div className="stat-card__value">{data.statusSummary.pendiente}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card__label">Sincronizadas</div>
+          <div className="stat-card__value">{data.statusSummary.sincronizadas}</div>
+        </div>
       </div>
 
-      <section>
-        <h3>Órdenes por mes</h3>
+      <section className="section">
+        <h2>Órdenes por mes</h2>
         <div role="img" aria-label="Gráfico de órdenes por mes">
-          {data.ordersByMonth.map((m: { month: string; total: number }) => (
-            <div key={m.month} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <span style={{ width: '80px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>{m.month}</span>
-              <div style={{ flex: 1, background: 'var(--color-canvas)', borderRadius: '4px', height: '20px' }}>
-                <div style={{ width: `${(m.total / maxMonth) * 100}%`, height: '100%', background: 'var(--color-primary)', borderRadius: '4px' }} />
+          {data.ordersByMonth.map((m) => (
+            <div key={m.month} className="bar">
+              <span className="bar__label">{m.month}</span>
+              <div className="bar__track">
+                <div className="bar__fill" style={{ width: `${(m.total / maxMonth) * 100}%` }} />
               </div>
-              <span style={{ width: '24px', textAlign: 'right' }}>{m.total}</span>
+              <span style={{ width: 24, textAlign: 'right' }}>{m.total}</span>
             </div>
           ))}
         </div>
       </section>
 
-      <section>
-        <h3>Top clientes</h3>
-        <ol>
-          {data.topClients.map((c: { company: string; total: number }) => (
-            <li key={c.company}>{c.company} — {c.total}</li>
+      <section className="section">
+        <h2>Top clientes</h2>
+        <ol style={{ paddingLeft: 20 }}>
+          {data.topClients.map((c) => (
+            <li key={c.company}>
+              {c.company} — {c.total}
+            </li>
           ))}
         </ol>
       </section>
-    </div>
-  );
-}
-
-function Card({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)', padding: '20px' }}>
-      <div style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)' }}>{label}</div>
-      <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--color-text)' }}>{value}</div>
     </div>
   );
 }

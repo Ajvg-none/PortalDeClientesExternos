@@ -18,28 +18,27 @@ export function OrderDetailPage() {
     ordersApi.get(id).then(setOrder).catch((e) => setError(e instanceof Error ? e.message : 'Error'));
   }, [id]);
 
-  if (error) return <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>;
-  if (!order) return <p>Cargando…</p>;
+  if (error) return <p role="alert" className="error">{error}</p>;
+  if (!order) return <p className="muted">Cargando…</p>;
 
-  const eyeRows: { label: string; od: string | number | null; oi: string | number | null }[] = [
+  const eyeRows: { label: string; od: number | null; oi: number | null }[] = [
     { label: 'Esfera', od: order.od.sphere, oi: order.oi.sphere },
     { label: 'Cilindro', od: order.od.cylinder, oi: order.oi.cylinder },
     { label: 'Eje', od: order.od.axis, oi: order.oi.axis },
     { label: 'Add', od: order.od.addition, oi: order.oi.addition },
     { label: 'DNP', od: order.od.dnp, oi: order.oi.dnp },
     { label: 'Altura', od: order.od.height, oi: order.oi.height },
-    { label: 'Código producto', od: order.od.productCode, oi: order.oi.productCode },
   ];
 
   return (
-    <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)', padding: '24px', maxWidth: '860px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2 style={{ margin: 0 }}>Orden {order.orderNumber}</h2>
+    <div className="card card--narrow">
+      <div className="page-head">
+        <h1>Orden {order.orderNumber}</h1>
         {isAdmin && order.syncStatus && <StatusBadge status={order.syncStatus} />}
       </div>
 
       {isAdmin && (
-        <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+        <p className="muted" style={{ marginBottom: 16 }}>
           {order.syncStatus === 'PENDIENTE' && order.pendingSinceMinutes != null
             ? `Pendiente desde hace ${Math.floor(order.pendingSinceMinutes / 60)} h`
             : order.syncStatus === 'SINCRONIZADA' && order.syncedAt
@@ -48,57 +47,64 @@ export function OrderDetailPage() {
         </p>
       )}
 
-      <section>
-        <h3>Datos generales</h3>
+      <section className="section">
+        <h2>Datos generales</h2>
         <DetailRow label="Cliente" value={order.company} />
         <DetailRow label="Paciente" value={order.patient} />
         <DetailRow label="Fecha de creación" value={new Date(order.createdAt).toLocaleString()} />
       </section>
 
-      <section>
-        <h3>Fórmula óptica</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-          <thead>
-            <tr>
-              <th style={th}>Campo</th>
-              <th style={th}>OD</th>
-              <th style={th}>OI</th>
-            </tr>
-          </thead>
-          <tbody>
-            {eyeRows.map((r) => (
-              <tr key={r.label} style={{ borderTop: '1px solid var(--color-border)' }}>
-                <td style={td}>{r.label}</td>
-                <td style={td}>{r.od ?? '—'}</td>
-                <td style={td}>{r.oi ?? '—'}</td>
+      <section className="section">
+        <h2>Fórmula óptica</h2>
+        <div className="table-scroll">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Campo</th>
+                <th>OD</th>
+                <th>OI</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {eyeRows.map((r) => (
+                <tr key={r.label}>
+                  <td>{r.label}</td>
+                  <td>{r.od ?? '—'}</td>
+                  <td>{r.oi ?? '—'}</td>
+                </tr>
+              ))}
+              <tr>
+                <td>Código producto</td>
+                <td>{order.od.productCode ?? '—'}</td>
+                <td>{order.oi.productCode ?? '—'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <section>
-        <h3>Tratamiento</h3>
+      <section className="section">
+        <h2>Tratamiento</h2>
         <p>{order.treatment ?? '—'}</p>
       </section>
 
-      <section>
-        <h3>Montura</h3>
+      <section className="section">
+        <h2>Montura</h2>
         <DetailRow label="Tipo" value={order.mount.type} />
         <DetailRow label="Marca" value={order.mount.brand} />
         <DetailRow label="Modelo" value={order.mount.model} />
         <DetailRow label="Color" value={order.mount.color} />
       </section>
 
-      <section>
-        <h3>Coloración</h3>
+      <section className="section">
+        <h2>Coloración</h2>
         <DetailRow label="Color" value={order.coloration.color} />
         <DetailRow label="Unicolor" value={order.coloration.unicolor ? 'Sí' : 'No'} />
         <DetailRow label="Degradado %" value={order.coloration.degradadoPercent} />
       </section>
 
-      <section>
-        <h3>Observaciones</h3>
+      <section className="section">
+        <h2>Observaciones</h2>
         <p>{order.observations ?? '—'}</p>
       </section>
     </div>
@@ -107,12 +113,9 @@ export function OrderDetailPage() {
 
 function DetailRow({ label, value }: { label: string; value: string | number | null }) {
   return (
-    <p style={{ margin: '6px 0' }}>
-      <span style={{ color: 'var(--color-text-secondary)' }}>{label}: </span>
+    <p className="detail-row">
+      <span className="detail-row__label">{label}: </span>
       <strong>{value ?? '—'}</strong>
     </p>
   );
 }
-
-const th: React.CSSProperties = { textAlign: 'left', padding: '8px 12px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' };
-const td: React.CSSProperties = { padding: '8px 12px' };

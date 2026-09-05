@@ -83,58 +83,69 @@ export function UserFormPage() {
   }
 
   const isClient = form.role === 'CLIENTE_EXTERNO';
-  const invalid = !form.username.trim() || (isClient && !form.companyName?.trim()) || (!isEdit && (form.password?.length ?? 0) < 6);
+  const invalid =
+    !form.username.trim() ||
+    (isClient && !form.companyName?.trim()) ||
+    (!isEdit && (form.password?.length ?? 0) < 6);
 
-  if (loading) return <p>Cargando…</p>;
+  if (loading) return <p className="muted">Cargando…</p>;
 
   return (
-    <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)', padding: '24px', maxWidth: '640px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>{isEdit ? 'Editar usuario' : 'Nuevo usuario'}</h2>
-        <Link to="/usuarios" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>← Volver</Link>
+    <div className="card card--form">
+      <div className="page-head">
+        <h1>{isEdit ? 'Editar usuario' : 'Nuevo usuario'}</h1>
+        <Link to="/usuarios" className="btn">← Volver</Link>
       </div>
 
-      {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>}
+      {error && <p role="alert" className="error">{error}</p>}
 
-      <form onSubmit={submit}>
-        <label htmlFor="user-username" style={labelStyle}>Username *</label>
-        <input id="user-username" value={form.username} onChange={(e) => set('username', e.target.value)} style={inputStyle} />
+      <form onSubmit={submit} noValidate>
+        <div className="grid-2">
+          <div className="form-field">
+            <label htmlFor="user-username">Username *</label>
+            <input id="user-username" className="control" value={form.username} onChange={(e) => set('username', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="user-role">Rol *</label>
+            <select id="user-role" className="control" value={form.role} onChange={(e) => set('role', e.target.value as UserInput['role'])}>
+              {ROLES.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
 
-        <label htmlFor="user-role" style={labelStyle}>Rol *</label>
-        <select id="user-role" value={form.role} onChange={(e) => set('role', e.target.value as UserInput['role'])} style={inputStyle}>
-          {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-        </select>
+          {isClient && (
+            <div className="form-field">
+              <label htmlFor="user-company">Empresa / cliente *</label>
+              <input id="user-company" className="control" value={form.companyName ?? ''} onChange={(e) => set('companyName', e.target.value)} />
+            </div>
+          )}
 
-        {isClient && (
-          <>
-            <label htmlFor="user-company" style={labelStyle}>Empresa / cliente *</label>
-            <input id="user-company" value={form.companyName ?? ''} onChange={(e) => set('companyName', e.target.value)} style={inputStyle} />
-          </>
-        )}
+          {!isEdit && (
+            <div className="form-field">
+              <label htmlFor="user-password">Contraseña temporal * (mín. 6)</label>
+              <input id="user-password" className="control" type="text" value={form.password ?? ''} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" />
+            </div>
+          )}
 
-        {!isEdit && (
-          <>
-            <label htmlFor="user-password" style={labelStyle}>Contraseña temporal * (mín. 6)</label>
-            <input id="user-password" type="text" value={form.password ?? ''} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" style={inputStyle} />
-          </>
-        )}
+          <div className="form-field">
+            <label htmlFor="user-email">Email (contacto interno)</label>
+            <input id="user-email" className="control" type="email" value={form.email ?? ''} onChange={(e) => set('email', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="user-phone">Teléfono</label>
+            <input id="user-phone" className="control" value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)} />
+          </div>
+          <div className="form-field" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="user-address">Dirección</label>
+            <textarea id="user-address" className="control" rows={2} value={form.address ?? ''} onChange={(e) => set('address', e.target.value)} />
+          </div>
+        </div>
 
-        <label htmlFor="user-email" style={labelStyle}>Email (contacto interno)</label>
-        <input id="user-email" type="email" value={form.email ?? ''} onChange={(e) => set('email', e.target.value)} style={inputStyle} />
-
-        <label htmlFor="user-phone" style={labelStyle}>Teléfono</label>
-        <input id="user-phone" value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)} style={inputStyle} />
-
-        <label htmlFor="user-address" style={labelStyle}>Dirección</label>
-        <textarea id="user-address" rows={2} value={form.address ?? ''} onChange={(e) => set('address', e.target.value)} style={{ ...inputStyle, height: 'auto' }} />
-
-        <button type="submit" disabled={saving || invalid} style={{ marginTop: '24px', height: '42px', padding: '0 24px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+        <button type="submit" className="btn btn--primary" disabled={saving || invalid} style={{ marginTop: 24 }}>
           {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear usuario'}
         </button>
       </form>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', margin: '16px 0 6px' };
-const inputStyle: React.CSSProperties = { width: '100%', height: '42px', padding: '0 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '14px' };

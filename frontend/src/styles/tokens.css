@@ -1,5 +1,6 @@
 /* ============================================================
- * Design tokens (anexo v1.4 - DISEÑO VISUAL Y UI/UX)
+ * Design tokens (anexo v1.4 - DISEÑO VISUAL Y UI/UX) + extension
+ * REM-cleanup 2026-09/F4: escala de espacios/tipografia/estados
  * ============================================================ */
 :root {
   /* Color */
@@ -11,6 +12,7 @@
   --color-canvas: #f8f9fa;
   --color-surface: #ffffff;
   --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.16);
 
   /* Estados / badges */
   --color-badge-pendiente-bg: #fff8e7;
@@ -27,43 +29,40 @@
 
   /* Radios */
   --radius-xl: 12px;
+  --radius-lg: 10px;
+  --radius-md: 8px;
   --radius-sm: 8px;
+  --radius-pill: 999px;
 
   /* Tipografia */
   --font-sans: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 28px;
+
+  /* Espacio (escala 4px) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Interaccion */
+  --focus-ring: 0 0 0 3px rgba(158, 126, 71, 0.4);
+  --control-height: 42px;
+  --btn-height: 42px;
+  --control-radius: var(--radius-md);
+  --transition: 120ms ease;
 
   /* Layout */
   --header-height: 64px;
   --content-max-width: 1280px; /* max-w-7xl */
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-}
-
-body {
-  font-family: var(--font-sans);
-  font-size: 14px;
-  color: var(--color-text-body);
-  background: var(--color-canvas);
-}
-
-h1,
-h2,
-h3 {
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-a {
-  color: var(--color-primary);
-  text-decoration: none;
 }

@@ -36,64 +36,26 @@ export function TopBar({ role, username }: { role: Role; username: string }) {
   }
 
   return (
-    <header
-      style={{
-        height: 'var(--header-height)',
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '24px',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-        CROVEN
-      </div>
+    <header className="topbar">
+      <div className="topbar__brand">CROVEN</div>
 
-      <nav style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
+      <nav className="topbar__nav" aria-label="Menú principal">
         {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === '/ordenes'}
-            style={({ isActive }) => ({
-              padding: '8px 16px',
-              borderRadius: '8px',
-              fontWeight: 500,
-              fontSize: '14px',
-              color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-              borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-            })}
+            className={({ isActive }) => `topbar__link${isActive ? ' is-active' : ''}`}
           >
             {item.label}
           </NavLink>
         ))}
       </nav>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
-        <span style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{username}</span>
-        <button
-          onClick={logout}
-          aria-label="Cerrar sesión"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            height: '42px',
-            padding: '0 16px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text-body)',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          <LogOut size={18} color="var(--color-primary)" /> Salir
+      <div className="topbar__actions">
+        <span className="topbar__user">{username}</span>
+        <button onClick={logout} aria-label="Cerrar sesión" className="btn">
+          <LogOut size={18} color="var(--color-primary)" aria-hidden="true" /> Salir
         </button>
       </div>
     </header>
@@ -103,8 +65,8 @@ export function TopBar({ role, username }: { role: Role; username: string }) {
 /** Contenedor de contenido: max-w-7xl centrado sobre canvas (anexo v1.4). */
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto', padding: '24px' }}>
+    <main id="contenido" className="page">
       {children}
-    </div>
+    </main>
   );
 }

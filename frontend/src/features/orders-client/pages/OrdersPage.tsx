@@ -21,7 +21,6 @@ const EMPTY: Filters = { from: '', to: '', company: '', syncStatus: '' };
  * - CLIENTE_EXTERNO: su historial (filtro de fechas) sin estado.
  * - LABORATORIO: todas, solo lectura, sin estado (filtros fechas + cliente).
  * - ADMINISTRADOR: todas, con estado + "pendiente desde" (fechas + cliente + estado).
- * Paginacion por offset (REM-6) y filtros con Aplicar/Limpiar (REM-7).
  */
 export function OrdersPage() {
   const { user } = useAuth();
@@ -83,92 +82,102 @@ export function OrdersPage() {
     load(0);
   }
 
-  const anyFilter = filters.from !== '' || filters.to !== '' || filters.company !== '' || filters.syncStatus !== '';
+  const anyFilter =
+    filters.from !== '' || filters.to !== '' || filters.company !== '' || filters.syncStatus !== '';
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2>{isClient ? 'Mis órdenes' : 'Órdenes'}</h2>
+      <div className="page-head">
+        <h1>{isClient ? 'Mis órdenes' : 'Órdenes'}</h1>
         {isClient && (
-          <Link to="/ordenes/nueva" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+          <Link to="/ordenes/nueva" className="btn btn--primary">
             + Nueva orden
           </Link>
         )}
       </div>
 
-      <form onSubmit={applyFilters} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '16px' }}>
-        <FilterField label="Desde">
-          <input type="date" value={filters.from} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} style={filterInput} />
-        </FilterField>
-        <FilterField label="Hasta">
-          <input type="date" value={filters.to} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} style={filterInput} />
-        </FilterField>
+      <form onSubmit={applyFilters} className="toolbar" aria-label="Filtros de órdenes">
+        <div className="form-field form-field--inline">
+          <label htmlFor="f-from">Desde</label>
+          <input id="f-from" className="control" type="date" value={filters.from} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} />
+        </div>
+        <div className="form-field form-field--inline">
+          <label htmlFor="f-to">Hasta</label>
+          <input id="f-to" className="control" type="date" value={filters.to} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} />
+        </div>
         {!isClient && (
-          <FilterField label="Cliente">
-            <input value={filters.company} onChange={(e) => setFilters((f) => ({ ...f, company: e.target.value }))} style={filterInput} />
-          </FilterField>
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-company">Cliente</label>
+            <input id="f-company" className="control" value={filters.company} onChange={(e) => setFilters((f) => ({ ...f, company: e.target.value }))} />
+          </div>
         )}
         {isAdmin && (
-          <FilterField label="Estado">
-            <select value={filters.syncStatus} onChange={(e) => setFilters((f) => ({ ...f, syncStatus: e.target.value }))} style={filterInput}>
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-status">Estado</label>
+            <select id="f-status" className="control" value={filters.syncStatus} onChange={(e) => setFilters((f) => ({ ...f, syncStatus: e.target.value }))}>
               <option value="">Todos</option>
               <option>PENDIENTE</option>
               <option>SINCRONIZADA</option>
             </select>
-          </FilterField>
+          </div>
         )}
-        <button type="submit" style={filterBtn}>Aplicar filtros</button>
-        <button type="button" onClick={clearFilters} disabled={!anyFilter} style={filterBtn}>Limpiar</button>
+        <button type="submit" className="btn">
+          Aplicar filtros
+        </button>
+        <button type="button" className="btn" onClick={clearFilters} disabled={!anyFilter}>
+          Limpiar
+        </button>
       </form>
 
-      {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>}
-      {notice && <p role="status" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{notice}</p>}
-      {!list && !error && <p>Cargando…</p>}
+      {error && <p role="alert" className="error">{error}</p>}
+      {notice && <p role="status" className="notice">{notice}</p>}
+      {!list && !error && <p className="muted">Cargando…</p>}
       {list && (
         <>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            Total de órdenes: <strong>{list.total}</strong>
+          <p className="muted">
+            Total de órdenes: <strong style={{ color: 'var(--color-text)' }}>{list.total}</strong>
           </p>
 
-          {list.data.length === 0 && <p>No hay órdenes que coincidan.</p>}
-          {list.data.length > 0 && (
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)' }}>
-              <thead>
-                <tr style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
-                  <th style={th}>N° orden</th>
-                  {!isClient && <th style={th}>Cliente</th>}
-                  <th style={th}>Fecha</th>
-                  <th style={th}>Resumen</th>
-                  {isAdmin && <th style={th}>Estado</th>}
-                  <th style={th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.data.map((o: OrderListItem) => (
-                  <tr key={o.id} style={{ fontSize: '14px', borderTop: '1px solid var(--color-border)' }}>
-                    <td style={td}>{o.orderNumber}</td>
-                    {!isClient && <td style={td}>{o.company}</td>}
-                    <td style={td}>{new Date(o.createdAt).toLocaleDateString()}</td>
-                    <td style={td}>{o.summary || '—'}</td>
-                    {isAdmin && (
-                      <td style={td}>
-                        <StatusBadge status={o.syncStatus ?? 'PENDIENTE'} />
-                        {o.syncStatus === 'PENDIENTE' && o.pendingSinceMinutes != null && (
-                          <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                            {Math.floor(o.pendingSinceMinutes / 60)} h pendiente
-                          </span>
-                        )}
-                      </td>
-                    )}
-                    <td style={td}>
-                      <Link to={`/ordenes/${o.id}`} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                        Ver
-                      </Link>
-                    </td>
+          {list.data.length === 0 ? (
+            <p className="empty">No hay órdenes que coincidan.</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>N° orden</th>
+                    {!isClient && <th>Cliente</th>}
+                    <th>Fecha</th>
+                    <th>Resumen</th>
+                    {isAdmin && <th>Estado</th>}
+                    <th className="is-actions"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {list.data.map((o: OrderListItem) => (
+                    <tr key={o.id}>
+                      <td>{o.orderNumber}</td>
+                      {!isClient && <td>{o.company}</td>}
+                      <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                      <td>{o.summary || '—'}</td>
+                      {isAdmin && (
+                        <td>
+                          <StatusBadge status={o.syncStatus ?? 'PENDIENTE'} />
+                          {o.syncStatus === 'PENDIENTE' && o.pendingSinceMinutes != null && (
+                            <span className="badge-meta">{Math.floor(o.pendingSinceMinutes / 60)} h pendiente</span>
+                          )}
+                        </td>
+                      )}
+                      <td className="is-actions">
+                        <Link to={`/ordenes/${o.id}`} className="btn btn--link">
+                          Ver
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
         </>
@@ -176,17 +185,3 @@ export function OrdersPage() {
     </div>
   );
 }
-
-function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label style={{ display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', marginBottom: '4px' }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-const th: React.CSSProperties = { textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid var(--color-border)' };
-const td: React.CSSProperties = { padding: '12px 16px' };
-const filterInput: React.CSSProperties = { height: '38px', padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '14px' };
-const filterBtn: React.CSSProperties = { height: '38px', padding: '0 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontWeight: 600, cursor: 'pointer' };

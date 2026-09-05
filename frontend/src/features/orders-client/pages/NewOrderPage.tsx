@@ -7,11 +7,9 @@ import type { OrderDetail } from '../../../core/types';
 
 /**
  * F6.4 + REM-2026-09 - Formulario de nueva orden con TODOS los campos de
- * RF-08 (generales, formula OD/OI completa, tratamiento, montura, coloracion,
- * observaciones). Empresa autopoblada en solo lectura (DEC-3); unico
- * obligatorio N de Orden + Paciente (RF-09); validacion asincrona de unicidad
- * del N de Orden (RF-10/REM-5); resumen modal antes de enviar (RF-12); sin
- * adjuntos (RF-11).
+ * RF-08. Empresa autopoblada en solo lectura (DEC-3); unicos obligatorios
+ * N de Orden + Paciente (RF-09); validacion asincrona de unicidad (RF-10);
+ * resumen modal antes de enviar (RF-12); sin adjuntos (RF-11).
  */
 
 const TREATMENTS = ['ECO (AR Verde)', 'OCEAN (AR Azul)', 'SOLERX SILVER', 'SOLERX BLUE'];
@@ -47,7 +45,6 @@ export function NewOrderPage() {
     return typeof v === 'string' ? v : '';
   }
 
-  // REM-5/RF-10: validacion asincrona de unicidad al salir del campo
   async function checkNumber() {
     const value = String(form.orderNumber ?? '').trim();
     if (!value) {
@@ -59,7 +56,6 @@ export function NewOrderPage() {
       const { available } = await ordersApi.checkOrderNumber(value);
       setNumberError(available ? '' : 'El número de orden ya existe. Usa otro.');
     } catch {
-      // sin red el backend sigue protegiendo con el 409 al confirmar
       setNumberError('');
     } finally {
       setCheckingNumber(false);
@@ -84,108 +80,117 @@ export function NewOrderPage() {
   const canReview = !numberInvalid && !patientInvalid && !numberError && !checkingNumber && !saving;
 
   return (
-    <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-card)', padding: '24px', maxWidth: '860px' }}>
-      <h2 style={{ marginTop: 0 }}>Nueva orden</h2>
+    <div className="card card--form">
+      <h1 style={{ fontSize: 24 }}>Nueva orden</h1>
 
-      <h3>Datos generales</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0 16px' }}>
-        <div style={{ margin: '12px 0' }}>
-          <label htmlFor="order-company" style={labelStyle}>Empresa (autopoblada)</label>
-          <input
-            id="order-company"
-            value={user?.companyName ?? ''}
-            disabled
-            style={{ ...inputStyle, background: 'var(--color-canvas)', color: 'var(--color-text-secondary)' }}
-          />
+      <section className="section">
+        <h2>Datos generales</h2>
+        <div className="grid-2">
+          <div className="form-field">
+            <label htmlFor="order-company">Empresa (autopoblada)</label>
+            <input id="order-company" className="control" value={user?.companyName ?? ''} disabled />
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-number">Número de orden *</label>
+            <input
+              id="order-number"
+              className={`control${numberError ? ' control-error' : ''}`}
+              value={String(form.orderNumber ?? '')}
+              onChange={(e) => set('orderNumber', e.target.value)}
+              onBlur={checkNumber}
+            />
+            {numberError && (
+              <p role="alert" className="field-error">{numberError}</p>
+            )}
+            {checkingNumber && <p className="muted" style={{ fontSize: 12, margin: '4px 0 0' }}>Verificando disponibilidad…</p>}
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-patient">Paciente *</label>
+            <input id="order-patient" className="control" value={String(form.patient ?? '')} onChange={(e) => set('patient', e.target.value)} />
+          </div>
         </div>
-        <div style={{ margin: '12px 0' }}>
-          <label htmlFor="order-number" style={labelStyle}>Número de orden *</label>
-          <input
-            id="order-number"
-            value={String(form.orderNumber ?? '')}
-            onChange={(e) => set('orderNumber', e.target.value)}
-            onBlur={checkNumber}
-            style={inputStyle}
-          />
-          {numberError && (
-            <p role="alert" style={{ color: 'var(--color-badge-error-text)', fontSize: '12px', margin: '4px 0 0' }}>
-              {numberError}
-            </p>
-          )}
-          {checkingNumber && (
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '12px', margin: '4px 0 0' }}>Verificando disponibilidad…</p>
-          )}
+      </section>
+
+      <section className="section">
+        <h2>Fórmula óptica — Ojo derecho (OD)</h2>
+        <EyeSection side="od" get={eyeValue} set={setEye} />
+      </section>
+      <section className="section">
+        <h2>Fórmula óptica — Ojo izquierdo (OI)</h2>
+        <EyeSection side="oi" get={eyeValue} set={setEye} />
+      </section>
+
+      <section className="section">
+        <h2>Tratamiento</h2>
+        <select className="control" style={{ maxWidth: 420 }} value={typeof form.treatment === 'string' ? form.treatment : ''} onChange={(e) => set('treatment', e.target.value)}>
+          <option value="">Sin tratamiento</option>
+          {TREATMENTS.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </section>
+
+      <section className="section">
+        <h2>Montura</h2>
+        <div className="grid-2">
+          <div className="form-field">
+            <label htmlFor="order-mount-type">Tipo de montura</label>
+            <select id="order-mount-type" className="control" value={typeof form.mountType === 'string' ? form.mountType : ''} onChange={(e) => set('mountType', e.target.value)}>
+              <option value="">Sin tipo</option>
+              {MOUNT_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-mount-brand">Marca</label>
+            <input id="order-mount-brand" className="control" value={typeof form.mountBrand === 'string' ? form.mountBrand : ''} onChange={(e) => set('mountBrand', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-mount-model">Modelo</label>
+            <input id="order-mount-model" className="control" value={typeof form.mountModel === 'string' ? form.mountModel : ''} onChange={(e) => set('mountModel', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-mount-color">Color</label>
+            <input id="order-mount-color" className="control" value={typeof form.mountColor === 'string' ? form.mountColor : ''} onChange={(e) => set('mountColor', e.target.value)} />
+          </div>
         </div>
-        <div style={{ margin: '12px 0' }}>
-          <label htmlFor="order-patient" style={labelStyle}>Paciente *</label>
-          <input id="order-patient" value={String(form.patient ?? '')} onChange={(e) => set('patient', e.target.value)} style={inputStyle} />
+      </section>
+
+      <section className="section">
+        <h2>Coloración</h2>
+        <div className="grid-3">
+          <div className="form-field">
+            <label htmlFor="order-color">Color</label>
+            <input id="order-color" className="control" value={typeof form.colorationColor === 'string' ? form.colorationColor : ''} onChange={(e) => set('colorationColor', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-unicolor">Unicolor</label>
+            <span className="check" style={{ height: 42 }}>
+              <input id="order-unicolor" type="checkbox" checked={form.colorationUnicolor === true} onChange={(e) => set('colorationUnicolor', e.target.checked)} />
+            </span>
+          </div>
+          <div className="form-field">
+            <label htmlFor="order-degradado">Degradado %</label>
+            <input id="order-degradado" className="control" type="number" step="any" value={typeof form.colorationDegradadoPercent === 'string' ? form.colorationDegradadoPercent : ''} onChange={(e) => set('colorationDegradadoPercent', e.target.value)} />
+          </div>
         </div>
-      </div>
+      </section>
 
-      <h3>Fórmula óptica — Ojo derecho (OD)</h3>
-      <EyeSection side="od" get={eyeValue} set={setEye} />
-      <h3>Fórmula óptica — Ojo izquierdo (OI)</h3>
-      <EyeSection side="oi" get={eyeValue} set={setEye} />
+      <section className="section">
+        <h2>Observaciones</h2>
+        <textarea className="control" rows={3} value={typeof form.observations === 'string' ? form.observations : ''} onChange={(e) => set('observations', e.target.value)} />
+      </section>
 
-      <h3>Tratamiento</h3>
-      <select value={typeof form.treatment === 'string' ? form.treatment : ''} onChange={(e) => set('treatment', e.target.value)} style={inputStyle}>
-        <option value="">Sin tratamiento</option>
-        {TREATMENTS.map((t) => <option key={t} value={t}>{t}</option>)}
-      </select>
+      {error && <p role="alert" className="error">{error}</p>}
 
-      <h3>Montura</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0 16px' }}>
-        <Field label="Tipo de montura">
-          <select value={typeof form.mountType === 'string' ? form.mountType : ''} onChange={(e) => set('mountType', e.target.value)} style={inputStyle}>
-            <option value="">Sin tipo</option>
-            {MOUNT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </Field>
-        <Field label="Marca">
-          <input value={typeof form.mountBrand === 'string' ? form.mountBrand : ''} onChange={(e) => set('mountBrand', e.target.value)} style={inputStyle} />
-        </Field>
-        <Field label="Modelo">
-          <input value={typeof form.mountModel === 'string' ? form.mountModel : ''} onChange={(e) => set('mountModel', e.target.value)} style={inputStyle} />
-        </Field>
-        <Field label="Color">
-          <input value={typeof form.mountColor === 'string' ? form.mountColor : ''} onChange={(e) => set('mountColor', e.target.value)} style={inputStyle} />
-        </Field>
-      </div>
-
-      <h3>Coloración</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0 16px', alignItems: 'end' }}>
-        <Field label="Color">
-          <input value={typeof form.colorationColor === 'string' ? form.colorationColor : ''} onChange={(e) => set('colorationColor', e.target.value)} style={inputStyle} />
-        </Field>
-        <Field label="Unicolor">
-          <input
-            type="checkbox"
-            checked={form.colorationUnicolor === true}
-            onChange={(e) => set('colorationUnicolor', e.target.checked)}
-            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-          />
-        </Field>
-        <Field label="Degradado %">
-          <input type="number" step="any" value={typeof form.colorationDegradadoPercent === 'string' ? form.colorationDegradadoPercent : ''} onChange={(e) => set('colorationDegradadoPercent', e.target.value)} style={inputStyle} />
-        </Field>
-      </div>
-
-      <h3>Observaciones</h3>
-      <textarea rows={3} value={typeof form.observations === 'string' ? form.observations : ''} onChange={(e) => set('observations', e.target.value)} style={{ ...inputStyle, height: 'auto' }} />
-
-      {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)' }}>{error}</p>}
-
-      <button
-        disabled={!canReview}
-        onClick={() => setConfirming(true)}
-        style={{ marginTop: '24px', height: '42px', padding: '0 24px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-      >
+      <button className="btn btn--primary" disabled={!canReview} onClick={() => setConfirming(true)} style={{ marginTop: 8 }}>
         Revisar orden
       </button>
 
       {confirming && (
-        <Modal onClose={() => setConfirming(false)} width={480}>
-          <h3 style={{ marginTop: 0 }}>Resumen de la orden</h3>
+        <Modal onClose={() => setConfirming(false)} titleId="order-summary-title">
+          <h3 id="order-summary-title" style={{ marginTop: 0 }}>Resumen de la orden</h3>
           <p>N° de orden: <strong>{String(form.orderNumber ?? '')}</strong></p>
           <p>Empresa: <strong>{user?.companyName}</strong></p>
           <p>Paciente: <strong>{String(form.patient ?? '')}</strong></p>
@@ -197,18 +202,11 @@ export function NewOrderPage() {
           ) : null}
           {form.colorationColor ? <p>Coloración: {[form.colorationColor, form.colorationUnicolor ? 'unicolor' : null, form.colorationDegradadoPercent ? `${String(form.colorationDegradadoPercent)}% degradado` : null].filter(Boolean).join(' · ')}</p> : null}
           {form.observations ? <p>Observaciones: {String(form.observations)}</p> : null}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={() => setConfirming(false)}
-              style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontWeight: 600, cursor: 'pointer' }}
-            >
+          <div className="modal-actions">
+            <button className="btn" onClick={() => setConfirming(false)}>
               Atrás
             </button>
-            <button
-              onClick={submit}
-              disabled={saving}
-              style={{ height: '42px', padding: '0 20px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-            >
+            <button className="btn btn--primary" onClick={submit} disabled={saving}>
               {saving ? 'Enviando…' : 'Confirmar envío'}
             </button>
           </div>
@@ -236,15 +234,17 @@ function EyeSection({
     { field: 'height', label: 'Altura' },
   ];
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0 16px' }}>
+    <div className="grid-3">
       {nums.map((n) => (
-        <Field key={n.field} label={n.label}>
-          <input type="number" step="any" value={get(side, n.field)} onChange={(e) => set(side, n.field, e.target.value)} style={inputStyle} />
-        </Field>
+        <div className="form-field" key={n.field}>
+          <label className="form-field-label">{n.label}</label>
+          <input className="control" type="number" step="any" value={get(side, n.field)} onChange={(e) => set(side, n.field, e.target.value)} />
+        </div>
       ))}
-      <Field label="Código producto">
-        <input value={get(side, 'productCode')} onChange={(e) => set(side, 'productCode', e.target.value)} style={inputStyle} />
-      </Field>
+      <div className="form-field">
+        <label className="form-field-label">Código producto</label>
+        <input className="control" value={get(side, 'productCode')} onChange={(e) => set(side, 'productCode', e.target.value)} />
+      </div>
     </div>
   );
 }
@@ -258,16 +258,3 @@ function SummaryEye({ side, get }: { side: string; get: (s: 'od' | 'oi', f: EyeF
   if (parts.length === 0 && !code) return null;
   return <p>{side}: {parts.join(' / ')}{code ? ` · código ${code}` : ''}</p>;
 }
-
-function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
-  return (
-    <div style={{ margin: '12px 0' }}>
-      <span style={labelStyle}>{label}</span>
-      {children}
-      {error && <p role="alert" style={{ color: 'var(--color-badge-error-text)', fontSize: '12px', margin: '4px 0 0' }}>{error}</p>}
-    </div>
-  );
-}
-
-const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-primary)', marginBottom: '6px' };
-const inputStyle: React.CSSProperties = { width: '100%', height: '42px', padding: '0 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '14px' };

@@ -1,4 +1,4 @@
-/** Pager minimalista (REM-2026-09/F6.3): paginacion por offset/total. */
+/** Pager minimalista (F6.3/REM-6): paginacion por offset/total. */
 export function Pager({
   total,
   limit,
@@ -13,34 +13,16 @@ export function Pager({
   const pages = Math.max(1, Math.ceil(total / limit));
   const current = Math.floor(offset / limit) + 1;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
-      <button
-        disabled={offset <= 0}
-        onClick={() => onPage(Math.max(0, offset - limit))}
-        style={btnStyle}
-      >
+    <div className="toolbar" style={{ marginTop: 16 }}>
+      <button className="btn btn--sm" disabled={offset <= 0} onClick={() => onPage(Math.max(0, offset - limit))}>
         ← Anterior
       </button>
-      <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+      <span className="muted" style={{ fontSize: 13 }}>
         Página {current} de {pages}
       </span>
-      <button
-        disabled={offset + limit >= total}
-        onClick={() => onPage(offset + limit)}
-        style={btnStyle}
-      >
+      <button className="btn btn--sm" disabled={offset + limit >= total} onClick={() => onPage(offset + limit)}>
         Siguiente →
       </button>
     </div>
   );
 }
-
-const btnStyle: React.CSSProperties = {
-  height: '34px',
-  padding: '0 14px',
-  borderRadius: 'var(--radius-sm)',
-  border: '1px solid var(--color-border)',
-  background: 'var(--color-surface)',
-  fontWeight: 600,
-  cursor: 'pointer',
-};
