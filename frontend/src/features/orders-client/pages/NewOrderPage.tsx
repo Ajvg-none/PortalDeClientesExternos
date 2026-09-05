@@ -106,7 +106,7 @@ export function NewOrderPage() {
           </div>
           <div className="form-field">
             <label htmlFor="order-patient">Paciente *</label>
-            <input id="order-patient" className="control" value={String(form.patient ?? '')} onChange={(e) => set('patient', e.target.value)} />
+            <input id="order-patient" aria-required="true" className="control" value={String(form.patient ?? '')} onChange={(e) => set('patient', e.target.value)} />
           </div>
         </div>
       </section>
@@ -235,15 +235,18 @@ function EyeSection({
   ];
   return (
     <div className="grid-3">
-      {nums.map((n) => (
-        <div className="form-field" key={n.field}>
-          <label className="form-field-label">{n.label}</label>
-          <input className="control" type="number" step="any" value={get(side, n.field)} onChange={(e) => set(side, n.field, e.target.value)} />
-        </div>
-      ))}
+      {nums.map((n) => {
+        const fieldId = `${side}-${n.field}`;
+        return (
+          <div className="form-field" key={n.field}>
+            <label htmlFor={fieldId} className="form-field-label">{n.label}</label>
+            <input id={fieldId} className="control" type="number" step="any" value={get(side, n.field)} onChange={(e) => set(side, n.field, e.target.value)} />
+          </div>
+        );
+      })}
       <div className="form-field">
-        <label className="form-field-label">Código producto</label>
-        <input className="control" value={get(side, 'productCode')} onChange={(e) => set(side, 'productCode', e.target.value)} />
+        <label htmlFor={`${side}-productCode`} className="form-field-label">Código producto</label>
+        <input id={`${side}-productCode`} className="control" value={get(side, 'productCode')} onChange={(e) => set(side, 'productCode', e.target.value)} />
       </div>
     </div>
   );
