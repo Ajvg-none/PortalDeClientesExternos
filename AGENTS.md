@@ -467,6 +467,11 @@ Resumen operativo de los pilares del anexo v1.2 del TXT (detalle completo allá;
 
 ## 10. Ver la base de datos en pgAdmin (entorno local)
 
+> Nota 2026-09: `infra/docker-compose.yml` publica hoy el puerto **fijo `5433:5432`** (se fijó 5433 para evitar
+> conflicto con un PostgreSQL local en 5432; ver sección 10.1.2). Por eso pgAdmin conecta a `localhost:5433`
+> con `portal`/`portal`. Las referencias a `5432` más abajo corresponden a la variante con
+> `${POSTGRES_PORT:-5432}` (sin conflicto local) o al puerto interno del contenedor.
+
 ### 10.1 Registrar el servidor en pgAdmin
 
 Datos exactos tal como los publica `infra/docker-compose.yml` (servicio `db`, PostgreSQL 16):
@@ -551,3 +556,19 @@ Al conectar, en el explorador (Servers → Portal de Clientes Externos (dev) →
   ```
 - La contraseña maestra que pide pgAdmin en el primer arranque es solo para guardar sus configuraciones
   locales; **no** es la contraseña de la base (que es `portal`).
+
+## 11. Usuarios demo de desarrollo (probar cada vista)
+
+Seed manual: `docker compose -f infra/docker-compose.yml exec api npx tsx scripts/seed-demo.ts`.
+Contraseña común de los usuarios demo: **`Cambiar123!`**.
+
+| Usuario | Rol | Contraseña | Vista(s) para probar |
+|---|---|---|---|
+| `admin` | ADMINISTRADOR | `Cambiar123!` | Órdenes maestro (+ estado/"pendiente desde"), Usuarios, Estadísticas + export |
+| `lab1` | LABORATORIO | `Cambiar123!` | Órdenes de todos los clientes (solo lectura, sin estado) |
+| `cliente2` | CLIENTE_EXTERNO | `Cambiar123!` | Mis órdenes, Nueva orden, detalle (acceso directo) |
+| `cliente1` | CLIENTE_EXTERNO | `Cambiar123!` | Flujo de **primer acceso (DEC-6)**: exige cambio de contraseña al entrar |
+
+API Key del middleware (no es un usuario): seed `npx tsx scripts/seed-apikey.ts`; valor dev
+`dev-middleware-api-key-0001` con header `X-API-Key` (RF-39/41). URLs de prueba: frontend
+`http://localhost:5173`, API `http://localhost:3000/api/health`.
