@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { toNumber as num } from '../../../core/num';
 import { opticalSummary } from '../../../core/order-format';
 // Re-export para compatibilidad de callers (tests) que importan el resumen
-// desde el mapper de orders (REM-2026-09/R4).
+// desde el mapper de orders.
 export { opticalSummary } from '../../../core/order-format';
 
 /**
@@ -10,12 +11,6 @@ export { opticalSummary } from '../../../core/order-format';
  */
 
 type OrderRow = Prisma.OrderGetPayload<{}>;
-
-function num(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const n = Number(value);
-  return Number.isNaN(n) ? null : n;
-}
 
 /** RF-16 - Detalle completo (todos los datos ingresados, sin sync_status). */
 export function orderToDetail(order: OrderRow) {

@@ -1,5 +1,6 @@
 import { body, param, query } from 'express-validator';
 import { MOUNT_TYPES, NUMERIC_FIELDS, TREATMENTS } from '../constants';
+import { bigIntIdParamValidators } from '../../../core/validators';
 
 /**
  * DTO de creacion de orden (O3.1/O3.3, RF-07…RF-11).
@@ -88,10 +89,8 @@ export const listOrdersValidators = [
   query('offset').optional().isInt({ min: 0 }).toInt(),
 ];
 
-export const orderIdParamValidators = [
-  // El id de BD es BIGINT: secuencia de digitos
-  param('id').custom((v) => /^\d+$/.test(String(v))).withMessage('id invalido'),
-];
+// El id de BD es BIGINT: regla compartida desde core (no duplicar /^\d+$/)
+export const orderIdParamValidators = bigIntIdParamValidators('id');
 
 // REM-2026-09/RF-10: el N de Orden del cliente (hasta 100 caracteres, igual
 // que la columna order_number)

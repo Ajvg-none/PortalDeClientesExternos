@@ -1,5 +1,6 @@
-import { body, param, query } from 'express-validator';
+import { body, query } from 'express-validator';
 import { UserRole } from '@prisma/client';
+import { bigIntIdParamValidators } from '../../../core/validators';
 
 /** DTOs del modulo users (U2.6/U2.7, RF-23…27) con express-validator. */
 
@@ -65,10 +66,8 @@ export const listUsersValidators = [
   query('offset').optional().isInt({ min: 0 }).toInt(),
 ];
 
-// El id de BD es BIGINT: valido como secuencia de digitos
-export const idParamValidators = [
-  param('id').custom((v) => /^\d+$/.test(String(v))).withMessage('id invalido'),
-];
+// El id de BD es BIGINT: regla compartida desde core (no duplicar /^\d+$/)
+export const idParamValidators = bigIntIdParamValidators('id');
 
 export const setActiveValidators = [
   body('isActive').isBoolean().withMessage('isActive es obligatorio (true|false)'),

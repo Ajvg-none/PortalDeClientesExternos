@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { toNumber as num } from '../../../core/num';
 
 /**
  * Serializador canonico del contrato con el middleware (M4.4 / RF-48).
@@ -10,12 +11,6 @@ import { Prisma } from '@prisma/client';
  */
 
 type OrderRow = Prisma.OrderGetPayload<{}>;
-
-function num(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const n = Number(value);
-  return Number.isNaN(n) ? null : n;
-}
 
 export interface CanonicalOrder {
   externalId: string;
