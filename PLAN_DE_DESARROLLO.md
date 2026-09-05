@@ -298,8 +298,45 @@ la librería de testing elegida al iniciar el frontend (recomendada: Vitest + Re
       completarla, continúa al dashboard según rol. Criterio: prueba de componente verifica que la navegación
       queda bloqueada hasta completar el cambio y que la redirección posterior es correcta.
 
-**Gate F6:** flujos felices por rol verificados con componentes + API simulada; flujo de primer acceso
-(F6.10) cubierto; sin pantallas pendientes del listado del TXT.
+> **⚠️ Reapertura por revisión integral (2026-09):** una auditoría exhaustiva de las fases completadas detectó
+> que varios ítems F6 se marcaron verdes sin cumplir su criterio. El **Gate F6 NO está en verde** hasta
+> cerrar el bloque **REM-2026-09**. No se renumera ningún RF; los ítems del bloque rastrean la remediación
+> 1:1 contra los criterios F6 afectados (y sus pruebas).
+
+### Bloque REM-2026-09 — Remediación Fase 6 (revisión integral, Gate F6 reabierto)
+
+Checklist de cierre. Cada sub-ítem exige su prueba en verde (TDD) y las suites completas sin regresiones.
+
+- [ ] **REM-1 Guard de primer acceso (F6.2/F6.10, DEC-6).** La ruta `/cambiar-contrasena` queda envuelta por un
+      guard que redirige a sí misma cuando `must_change_password=true`, impidiendo renderizar la pantalla
+      (posible bucle). Fix de ruteo + prueba de componente a nivel de rutas (flag TRUE renderiza el form; sin
+      flag redirige al dashboard).
+- [ ] **REM-2 Exportación CSV desde UI (F6.9/RF-34).** `window.open` no adjunta el JWT → 401. Descarga vía
+      `fetch` autenticado + Blob. Prueba con fetch mock (header Bearer y disparo de descarga).
+- [ ] **REM-3 Persistencia de sesión (RF-03).** Tras recargar la SPA el token sobrevive pero el `user` no
+      (estado solo en memoria) → logout forzado. Persistir `AuthUser` y restaurarlo. Prueba.
+- [ ] **REM-4 Formulario de orden completo (F6.4/RF-08).** El formulario solo captura un subconjunto de los
+      campos: faltan eje/Add/DNP/altura/código de producto (OD y OI), montura (tipo/marca/modelo/color) y
+      coloración (color/unicolor/degradado %). Completar los ~30 campos + pruebas por sección.
+- [ ] **REM-5 Validación asíncrona de unicidad del N° de Orden (F6.4/RF-10).** Falta el aviso de "número en
+      uso" previo al envío (hoy solo responde 409 al confirmar). Prueba.
+- [ ] **REM-6 Paginación de listados (F6.3/F6.6/F6.8).** La UI no pagina; con >20 órdenes el resto es
+      inaccesible. Paginación consumiendo `limit/offset/total`. Pruebas.
+- [ ] **REM-7 Filtros por rol (F6.5/F6.6/F6.8, RF-15/20/30).** Faltan filtros de fecha (cliente), fecha+cliente
+      (lab) y fecha+cliente+estado (admin) con Aplicar/Limpiar. Pruebas.
+- [ ] **REM-8 Detalle de orden completo (F6.5/F6.8, RF-16/31).** El detalle muestra un subconjunto de campos y
+      omite fecha de sincronización para admin. Completar + prueba de ausencia de acciones de edición.
+- [ ] **REM-9 Gestión de usuarios en UI (F6.7/RF-23…27).** Solo existe listar y dar de baja/reactivar: faltan
+      crear/editar (username obligatorio), reset de contraseña con confirmación y filtros por
+      nombre/rol/estado. Pruebas por acción (sin DELETE físico).
+- [ ] **REM-10 Tests faltantes F6.1/F6.2** (logout, 404, 401→login y navegación por flag/rol) y **Montserrat**
+      (anexo v1.4) no se carga en `index.html`.
+- [ ] **REM-11 Kit `shared` (anexo v1.4).** Reemplazar estilos inline repetidos por componentes
+      `Button/Card/Table/Modal(Confirm)/Badge` con a11y (focus trap, ESC) y no abusar de las variantes de
+      estado de sincronización para otros semánticos (p. ej. usuario Activo/Inactivo).
+
+**Gate F6 (reabierto):** todos los REM-1…REM-11 en verde con sus pruebas + suites completas sin regresiones
+(backend `npm run test:all`, frontend `npm test`) y sin pantallas pendientes del listado del TXT.
 
 ---
 
