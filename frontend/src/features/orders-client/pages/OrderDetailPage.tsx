@@ -92,9 +92,9 @@ export function OrderDetailPage() {
 
       <section>
         <h3>Coloración</h3>
-        <DetailRow label="Color" value={order.coloration.color as string | null} />
+        <DetailRow label="Color" value={order.coloration.color} />
         <DetailRow label="Unicolor" value={order.coloration.unicolor ? 'Sí' : 'No'} />
-        <DetailRow label="Degradado %" value={order.coloration.degradadoPercent != null ? String(order.coloration.degradadoPercent) : null} />
+        <DetailRow label="Degradado %" value={order.coloration.degradadoPercent} />
       </section>
 
       <section>

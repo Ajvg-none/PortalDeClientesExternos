@@ -31,13 +31,37 @@ export interface OrderListItem {
   pendingSinceMinutes?: number | null;
 }
 
+/** Formula optica de un ojo (espejo de la proyeccion de detalle del backend). */
+export interface EyeData {
+  sphere: number | null;
+  cylinder: number | null;
+  axis: number | null;
+  addition: number | null;
+  dnp: number | null;
+  height: number | null;
+  productCode: string | null;
+}
+
+export interface MountData {
+  type: string | null;
+  brand: string | null;
+  model: string | null;
+  color: string | null;
+}
+
+export interface ColorationData {
+  color: string | null;
+  unicolor: boolean;
+  degradadoPercent: number | null;
+}
+
 export interface OrderDetail extends OrderListItem {
   externalId: string;
-  od: Record<string, string | number | null>;
-  oi: Record<string, string | number | null>;
+  od: EyeData;
+  oi: EyeData;
   treatment: string | null;
-  mount: Record<string, string | null>;
-  coloration: Record<string, unknown>;
+  mount: MountData;
+  coloration: ColorationData;
   observations: string | null;
 }
 

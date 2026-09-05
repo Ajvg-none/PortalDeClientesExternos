@@ -4,9 +4,8 @@ import { ordersApi, type OrdersList } from '../api/orders';
 import { useAuth } from '../../../app/AuthContext';
 import { StatusBadge } from '../../../shared/StatusBadge';
 import { Pager } from '../../../shared/Pager';
+import { PAGE_SIZE } from '../../../core/constants';
 import type { OrderListItem } from '../../../core/types';
-
-const PAGE = 20;
 
 interface Filters {
   from: string;
@@ -50,7 +49,7 @@ export function OrdersPage() {
 
   const load = useCallback(
     (nextOffset: number) => {
-      const params: Record<string, string> = { limit: String(PAGE), offset: String(nextOffset) };
+      const params: Record<string, string> = { limit: String(PAGE_SIZE), offset: String(nextOffset) };
       if (active.from) params.from = active.from;
       if (active.to) params.to = active.to;
       if (!isClient && active.company.trim()) params.company = active.company.trim();
@@ -171,7 +170,7 @@ export function OrdersPage() {
               </tbody>
             </table>
           )}
-          <Pager total={list.total} limit={PAGE} offset={offset} onPage={(o) => load(o)} />
+          <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
         </>
       )}
     </div>

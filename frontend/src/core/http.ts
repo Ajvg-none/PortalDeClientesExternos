@@ -22,6 +22,18 @@ export class ApiError extends Error {
 const TOKEN_KEY = 'portal_token';
 const USER_KEY = 'portal_user';
 
+/** Serializa params de consulta (REM-cleanup 2026-09/F3): evita repetir el
+ *  armado de URLSearchParams en cada feature. */
+export function qs(params?: Record<string, string>): string {
+  if (!params) return '';
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== '') search.set(k, v);
+  }
+  const out = search.toString();
+  return out ? `?${out}` : '';
+}
+
 export const session = {
   getToken(): string | null {
     return localStorage.getItem(TOKEN_KEY);

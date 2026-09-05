@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { usersApi, type UsersList } from '../api/users';
 import { Pager } from '../../../shared/Pager';
 import { Modal } from '../../../shared/Modal';
+import { PAGE_SIZE } from '../../../core/constants';
 import type { AuthUser } from '../../../core/types';
-
-const LIMIT = 20;
 
 /**
  * F6.7/REM-2026-09 - Gestion de usuarios (RF-23…27): listado filtrable por
@@ -31,7 +30,7 @@ export function UsersPage() {
   async function load(nextOffset: number) {
     try {
       setError('');
-      const params: Record<string, string> = { limit: String(LIMIT), offset: String(nextOffset) };
+      const params: Record<string, string> = { limit: String(PAGE_SIZE), offset: String(nextOffset) };
       if (filters.q.trim()) params.q = filters.q.trim();
       if (filters.role) params.role = filters.role;
       if (filters.isActive) params.isActive = filters.isActive;
@@ -161,7 +160,7 @@ export function UsersPage() {
               ))}
             </tbody>
           </table>
-          <Pager total={list.total} limit={LIMIT} offset={offset} onPage={(o) => load(o)} />
+          <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
         </>
       )}
 

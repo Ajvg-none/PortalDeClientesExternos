@@ -1,4 +1,4 @@
-import { http } from '../../../core/http';
+import { http, qs } from '../../../core/http';
 import type { OrderDetail, OrderListItem } from '../../../core/types';
 
 /** API de ordenes (feature orders-client / orders-lab). */
@@ -15,10 +15,7 @@ export interface OrderCreateInput {
 }
 
 export const ordersApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return http.get<OrdersList>(`/orders${qs}`);
-  },
+  list: (params?: Record<string, string>) => http.get<OrdersList>(`/orders${qs(params)}`),
   get: (id: string) => http.get<OrderDetail>(`/orders/${id}`),
   create: (input: OrderCreateInput) => http.post<OrderDetail>('/orders', input),
   checkOrderNumber: (value: string) =>

@@ -1,4 +1,4 @@
-import { http } from '../../../core/http';
+import { http, qs } from '../../../core/http';
 import type { AuthUser } from '../../../core/types';
 
 /** API de gestion de usuarios (feature admin-users). */
@@ -19,10 +19,7 @@ export type UserInput = {
 };
 
 export const usersApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return http.get<UsersList>(`/users${qs}`);
-  },
+  list: (params?: Record<string, string>) => http.get<UsersList>(`/users${qs(params)}`),
   get: (id: string) => http.get<AuthUser>(`/users/${id}`),
   create: (input: UserInput) => http.post<AuthUser>('/users', input),
   update: (id: string, input: Partial<UserInput>) => http.patch<AuthUser>(`/users/${id}`, input),
