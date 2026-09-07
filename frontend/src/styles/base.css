@@ -1,9 +1,20 @@
 /* ============================================================
- * Base (REM-cleanup 2026-09/F4) - reset, layout global, a11y
- * ============================================================ */
+   Base (REM-cleanup 2026-09/F4) - reset, layout global, a11y
+   + Fase visual 2026-09: scroll, selection, antialiasing
+   ============================================================ */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -22,6 +33,22 @@ body {
   background: var(--color-canvas);
 }
 
+/* ✅ NUEVO: selección dorada coherente con la marca */
+::selection {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+::-moz-selection {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ✅ NUEVO: reset de márgenes de párrafos para evitar espacio errático */
+p {
+  margin: 0 0 var(--sp-4);
+}
+
 h1,
 h2,
 h3,
@@ -35,13 +62,18 @@ h4 {
 a {
   color: var(--color-primary);
   text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
 }
 
 button {
   font-family: inherit;
 }
 
-/* Foco visible (WCAG: minimo 3:1 y 2-3px) */
+/* Foco visible (WCAG: mínimo 3:1 y 2-3px) */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -82,11 +114,32 @@ main {
   }
 }
 
+/* ✅ NUEVO: utilidades de layout reutilizables */
+.stack > * + * {
+  margin-top: var(--sp-4);
+}
+.stack-sm > * + * {
+  margin-top: var(--sp-2);
+}
+.stack-lg > * + * {
+  margin-top: var(--sp-6);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+/* ✅ A11y: respeta prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -34,6 +34,7 @@ export function OrdersPage() {
   const [notice, setNotice] = useState('');
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [active, setActive] = useState<Filters>(EMPTY);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -53,6 +54,7 @@ export function OrdersPage() {
       if (active.to) params.to = active.to;
       if (!isClient && active.company.trim()) params.company = active.company.trim();
       if (isAdmin && active.syncStatus) params.syncStatus = active.syncStatus;
+
       ordersApi
         .list(params)
         .then((r) => {
@@ -96,92 +98,105 @@ export function OrdersPage() {
         )}
       </div>
 
-      <form onSubmit={applyFilters} className="toolbar" aria-label="Filtros de órdenes">
-        <div className="form-field form-field--inline">
-          <label htmlFor="f-from">Desde</label>
-          <input id="f-from" className="control" type="date" value={filters.from} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} />
-        </div>
-        <div className="form-field form-field--inline">
-          <label htmlFor="f-to">Hasta</label>
-          <input id="f-to" className="control" type="date" value={filters.to} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} />
-        </div>
-        {!isClient && (
-          <div className="form-field form-field--inline">
-            <label htmlFor="f-company">Cliente</label>
-            <input id="f-company" className="control" value={filters.company} onChange={(e) => setFilters((f) => ({ ...f, company: e.target.value }))} />
-          </div>
-        )}
-        {isAdmin && (
-          <div className="form-field form-field--inline">
-            <label htmlFor="f-status">Estado</label>
-            <select id="f-status" className="control" value={filters.syncStatus} onChange={(e) => setFilters((f) => ({ ...f, syncStatus: e.target.value }))}>
-              <option value="">Todos</option>
-              <option>PENDIENTE</option>
-              <option>SINCRONIZADA</option>
-            </select>
-          </div>
-        )}
-        <button type="submit" className="btn">
-          Aplicar filtros
-        </button>
-        <button type="button" className="btn" onClick={clearFilters} disabled={!anyFilter}>
-          Limpiar
-        </button>
-      </form>
+      {/* ✅ NUEVO: contenedor .panel para agrupar filtros + tabla + pager */}
+      <div className="panel">
+        {/* ✅ NUEVO: notice/error antes del toolbar (consistencia con UsersPage) */}
+        {notice && <p role="status" className="notice">{notice}</p>}
+        {error && <p role="alert" className="error">{error}</p>}
 
-      {error && <p role="alert" className="error">{error}</p>}
-      {notice && <p role="status" className="notice">{notice}</p>}
-      {!list && !error && <p className="muted">Cargando…</p>}
-      {list && (
-        <>
-          <p className="muted">
-            Total de órdenes: <strong style={{ color: 'var(--color-text)' }}>{list.total}</strong>
-          </p>
-
-          {list.data.length === 0 ? (
-            <p className="empty">No hay órdenes que coincidan.</p>
-          ) : (
-            <div className="table-scroll">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>N° orden</th>
-                    {!isClient && <th>Cliente</th>}
-                    <th>Fecha</th>
-                    <th>Resumen</th>
-                    {isAdmin && <th>Estado</th>}
-                    <th className="is-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.data.map((o: OrderListItem) => (
-                    <tr key={o.id}>
-                      <td>{o.orderNumber}</td>
-                      {!isClient && <td>{o.company}</td>}
-                      <td>{new Date(o.createdAt).toLocaleDateString()}</td>
-                      <td>{o.summary || '—'}</td>
-                      {isAdmin && (
-                        <td>
-                          <StatusBadge status={o.syncStatus ?? 'PENDIENTE'} />
-                          {o.syncStatus === 'PENDIENTE' && o.pendingSinceMinutes != null && (
-                            <span className="badge-meta">{Math.floor(o.pendingSinceMinutes / 60)} h pendiente</span>
-                          )}
-                        </td>
-                      )}
-                      <td className="is-actions">
-                        <Link to={`/ordenes/${o.id}`} className="btn btn--link">
-                          Ver
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <form onSubmit={applyFilters} className="toolbar panel__toolbar" aria-label="Filtros de órdenes">
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-from">Desde</label>
+            <input id="f-from" className="control" type="date" value={filters.from} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} />
+          </div>
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-to">Hasta</label>
+            <input id="f-to" className="control" type="date" value={filters.to} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} />
+          </div>
+          {!isClient && (
+            <div className="form-field form-field--inline">
+              <label htmlFor="f-company">Cliente</label>
+              <input id="f-company" className="control" value={filters.company} onChange={(e) => setFilters((f) => ({ ...f, company: e.target.value }))} />
             </div>
           )}
-          <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
-        </>
-      )}
+          {isAdmin && (
+            <div className="form-field form-field--inline">
+              <label htmlFor="f-status">Estado</label>
+              <select id="f-status" className="control" value={filters.syncStatus} onChange={(e) => setFilters((f) => ({ ...f, syncStatus: e.target.value }))}>
+                <option value="">Todos</option>
+                <option>PENDIENTE</option>
+                <option>SINCRONIZADA</option>
+              </select>
+            </div>
+          )}
+          <button type="submit" className="btn">
+            Aplicar filtros
+          </button>
+          <button type="button" className="btn" onClick={clearFilters} disabled={!anyFilter}>
+            Limpiar
+          </button>
+        </form>
+
+        {!list && !error && <p className="muted">Cargando…</p>}
+
+        {list && (
+          <>
+            {/* ✅ NUEVO: list-summary en lugar de <p className="muted"> suelto */}
+            <div className="list-summary">
+              Total de órdenes: <strong>{list.total}</strong>
+            </div>
+
+            {list.data.length === 0 ? (
+              <p className="empty">No hay órdenes que coincidan.</p>
+            ) : (
+              <div className="table-scroll panel__body">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>N° orden</th>
+                      {!isClient && <th>Cliente</th>}
+                      <th>Fecha</th>
+                      <th>Resumen</th>
+                      {isAdmin && <th>Estado</th>}
+                      <th className="is-actions"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {list.data.map((o: OrderListItem) => (
+                      <tr key={o.id}>
+                        <td>{o.orderNumber}</td>
+                        {!isClient && <td>{o.company}</td>}
+                        <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                        <td>{o.summary || '—'}</td>
+                        {isAdmin && (
+                          <td>
+                            <StatusBadge status={o.syncStatus ?? 'PENDIENTE'} />
+                            {o.syncStatus === 'PENDIENTE' && o.pendingSinceMinutes != null && (
+                              <span className="badge-meta badge-meta--inline">
+                                {Math.floor(o.pendingSinceMinutes / 60)} h pendiente
+                              </span>
+                            )}
+                          </td>
+                        )}
+                        <td className="is-actions">
+                          <Link to={`/ordenes/${o.id}`} className="btn btn--link">
+                            Ver
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ✅ NUEVO: pager dentro de panel__footer */}
+            <div className="panel__footer">
+              <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

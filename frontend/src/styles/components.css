@@ -1,10 +1,56 @@
 /* ============================================================
- * Componentes del design system (REM-cleanup 2026-09/F4)
- * Anexo v1.4: botones 42px, tarjetas rounded-xl, badges pill,
- * tablas con headers 12px uppercase #6E6E6E y filas 14px #444.
- * ============================================================ */
+   Componentes del design system
+   - REM-cleanup 2026-09/F4 (base)
+   - Fase visual 2026-09: keyframes, motion, skeleton,
+     microinteracciones, utilidades de espaciado
+   - Paso 2: panel contenedor, list-summary, badge-meta-inline,
+     bar__value, topbar__avatar, section-label, pager
+   ============================================================ */
 
-/* ---------- Header superior (Top Header Layout 64px) ---------- */
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bar-grow {
+  from { width: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+
+@keyframes underline-slide {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ============================================================
+   HEADER SUPERIOR (Top Header Layout 64px)
+   ============================================================ */
 .topbar {
   height: var(--header-height);
   background: var(--color-surface);
@@ -15,7 +61,8 @@
   padding: 0 var(--sp-6);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-topbar);
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
 
 .topbar__brand {
@@ -24,6 +71,19 @@
   color: var(--color-text);
   white-space: nowrap;
   letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* ✅ NUEVO: acento dorado sutil en la marca */
+.topbar__brand::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(158, 126, 71, 0.18);
 }
 
 .topbar__nav {
@@ -32,6 +92,7 @@
   justify-content: center;
   gap: var(--sp-2);
   overflow-x: auto;
+  position: relative;
 }
 
 .topbar__link {
@@ -40,15 +101,40 @@
   font-weight: 500;
   font-size: var(--fs-base);
   color: var(--color-text-secondary);
-  border-bottom: 2px solid transparent;
+  position: relative;
   white-space: nowrap;
+  transition: color var(--transition-fast);
 }
+
 .topbar__link:hover {
   color: var(--color-primary);
 }
+
+/* ✅ NUEVO: underline animado en hover y activo */
+.topbar__link::after {
+  content: '';
+  position: absolute;
+  left: var(--sp-4);
+  right: var(--sp-4);
+  bottom: -2px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.topbar__link:hover::after {
+  transform: scaleX(0.6);
+}
+
 .topbar__link.is-active {
   color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+}
+
+.topbar__link.is-active::after {
+  transform: scaleX(1);
 }
 
 .topbar__actions {
@@ -58,12 +144,41 @@
   white-space: nowrap;
 }
 
+/* ✅ NUEVO: chip de usuario con avatar */
+.topbar__user-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.topbar__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  flex-shrink: 0;
+}
+
 .topbar__user {
   color: var(--color-text-secondary);
   font-size: var(--fs-sm);
 }
 
-/* ---------- Botones ---------- */
+/* ============================================================
+   BOTONES
+   ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -79,11 +194,27 @@
   font-size: var(--fs-base);
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--transition), border-color var(--transition);
+  position: relative;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--transition-fast);
 }
+
+/* ✅ NUEVO: lift en hover + press en active */
 .btn:hover:not(:disabled) {
   border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
 }
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -94,9 +225,11 @@
   border-color: var(--color-primary);
   color: #fff;
 }
+
 .btn--primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
+  box-shadow: 0 6px 18px rgba(158, 126, 71, 0.28);
 }
 
 .btn--danger {
@@ -104,8 +237,10 @@
   border-color: var(--color-badge-error-text);
   color: #fff;
 }
+
 .btn--danger:hover:not(:disabled) {
   filter: brightness(0.94);
+  box-shadow: 0 6px 18px rgba(197, 34, 31, 0.25);
 }
 
 .btn--sm {
@@ -121,12 +256,27 @@
   padding: var(--sp-1);
   height: auto;
   font-weight: 600;
+  box-shadow: none;
 }
 .btn--link:hover:not(:disabled) {
   text-decoration: underline;
+  transform: none;
+  box-shadow: none;
 }
 
-/* ---------- Pagina: cabecera, tarjetas, notificaciones ---------- */
+/* ✅ NUEVO: spinner dentro de botón */
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ============================================================
+   PÁGINA: cabecera, tarjetas, notificaciones
+   ============================================================ */
 .page-head {
   display: flex;
   align-items: center;
@@ -134,7 +284,9 @@
   gap: var(--sp-4);
   flex-wrap: wrap;
   margin-bottom: var(--sp-6);
+  animation: rise var(--dur-slow) var(--ease-out);
 }
+
 .page-head h1 {
   margin: 0;
   font-size: var(--fs-xl);
@@ -145,6 +297,8 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
   padding: var(--sp-6);
+  animation: rise var(--dur-slow) var(--ease-out) both;
+  transition: box-shadow var(--transition), transform var(--transition);
 }
 
 .card--narrow {
@@ -157,33 +311,89 @@
   width: 380px;
 }
 
+/* ✅ NUEVO: panel contenedor para listados (toolbar + tabla + pager) */
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-6);
+  animation: rise var(--dur-slow) var(--ease-out) both;
+}
+
+.panel__toolbar {
+  margin-bottom: var(--sp-4);
+}
+
+.panel__body {
+  margin-bottom: var(--sp-4);
+}
+
+.panel__footer {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+
+/* ✅ NUEVO: resumen de lista (ej: "Total de órdenes: 3") */
+.list-summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-4);
+}
+
+.list-summary strong {
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+
 .notice {
   color: var(--color-primary);
   font-weight: 600;
   margin: 0 0 var(--sp-4);
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
+
 .error {
   color: var(--color-badge-error-text);
   margin: var(--sp-2) 0 var(--sp-4);
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
+
 .muted {
   color: var(--color-text-secondary);
 }
+
+/* ✅ NUEVO: variante pequeña de muted */
+.muted--sm {
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
+}
+
 .empty {
   color: var(--color-text-secondary);
   padding: var(--sp-6) 0;
+  animation: fade-in var(--dur-slow) var(--ease-out);
 }
 
-/* ---------- Toolbar / filtros ---------- */
+/* ============================================================
+   TOOLBAR / FILTROS
+   ============================================================ */
 .toolbar {
   display: flex;
   gap: var(--sp-3);
   flex-wrap: wrap;
   align-items: flex-end;
   margin-bottom: var(--sp-4);
+  animation: rise var(--dur-slow) var(--ease-out) both;
 }
 
-/* ---------- Formularios ---------- */
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
 .form-field {
   margin: var(--sp-3) 0;
   display: flex;
@@ -192,6 +402,7 @@
 .form-field--inline {
   margin: 0;
 }
+
 .form-field label,
 .form-field-label {
   display: block;
@@ -212,16 +423,22 @@
   background: var(--color-surface);
   font-size: var(--fs-base);
   color: var(--color-text);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
 }
+
 .control:hover {
   border-color: var(--color-border-strong);
 }
+
 .control:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: var(--focus-ring);
 }
+
 .control:disabled {
   background: var(--color-canvas);
   color: var(--color-text-secondary);
@@ -242,13 +459,13 @@ select.control {
 .control-error {
   border-color: var(--color-badge-error-text);
 }
+
 .field-error {
   color: var(--color-badge-error-text);
   font-size: var(--fs-xs);
   margin: var(--sp-1) 0 0;
 }
 
-/* Checkbox alineado a sus etiquetas */
 .check {
   display: flex;
   align-items: center;
@@ -261,18 +478,24 @@ select.control {
   accent-color: var(--color-primary);
 }
 
-/* ---------- Tablas ---------- */
+/* ============================================================
+   TABLAS
+   ============================================================ */
 .table-scroll {
   overflow-x: auto;
 }
+
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
   font-size: var(--fs-base);
+  overflow: hidden;
 }
+
 .table th {
   text-align: left;
   padding: var(--sp-3) var(--sp-4);
@@ -282,15 +505,39 @@ select.control {
   letter-spacing: 0.4px;
   color: var(--color-text-secondary);
   font-weight: 600;
+  background: var(--color-surface);
 }
+
 .table td {
   padding: var(--sp-3) var(--sp-4);
   border-top: 1px solid var(--color-border);
   color: var(--color-text-body);
 }
-.table tbody tr:hover {
-  background: var(--color-canvas);
+
+/* ✅ NUEVO: hover con indicador dorado lateral + cursor pointer */
+.table tbody tr {
+  transition: background var(--transition-fast);
+  position: relative;
 }
+
+.table tbody tr:hover {
+  background: var(--color-primary-soft);
+}
+
+.table tbody tr.is-clickable {
+  cursor: pointer;
+}
+
+.table tbody tr.is-clickable:hover td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+}
+
 .table .is-actions {
   text-align: right;
 }
@@ -303,14 +550,28 @@ select.control {
   justify-content: flex-end;
 }
 
-/* ---------- Badges / pills ---------- */
+/* ============================================================
+   BADGES / PILLS
+   ============================================================ */
 .pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
   font-weight: 600;
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
+
+/* ✅ NUEVO: dot indicador en el pill */
+.pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .pill--pendiente {
   background: var(--color-badge-pendiente-bg);
   color: var(--color-badge-pendiente-text);
@@ -341,7 +602,16 @@ select.control {
   margin-top: 2px;
 }
 
-/* ---------- Layout interno de paginas ---------- */
+/* ✅ NUEVO: badge-meta inline (no rompe simetría de fila) */
+.badge-meta--inline {
+  display: inline-block;
+  margin-left: var(--sp-2);
+  vertical-align: middle;
+}
+
+/* ============================================================
+   LAYOUT INTERNO DE PÁGINAS
+   ============================================================ */
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -356,6 +626,7 @@ select.control {
 .section {
   margin: var(--sp-6) 0 var(--sp-4);
 }
+
 .section h2,
 .section h3 {
   font-size: var(--fs-md);
@@ -365,18 +636,42 @@ select.control {
   margin-bottom: var(--sp-3);
 }
 
+/* ✅ NUEVO: label de sección en dorado (para estadísticas) */
+.section-label {
+  font-size: var(--fs-md);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--sp-4);
   margin-bottom: var(--sp-6);
 }
+
+/* ✅ NUEVO: stat-card con entrada escalonada */
 .stat-card {
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
   padding: var(--sp-5);
+  animation: rise var(--dur-slow) var(--ease-out) both;
+  transition: box-shadow var(--transition), transform var(--transition);
 }
+
+.stat-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.stat-card:nth-child(1) { animation-delay: 0ms; }
+.stat-card:nth-child(2) { animation-delay: 80ms; }
+.stat-card:nth-child(3) { animation-delay: 160ms; }
+
 .stat-card__label {
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -409,11 +704,30 @@ select.control {
   height: 20px;
   overflow: hidden;
 }
+
+/* ✅ NUEVO: bar__fill con animación grow */
 .bar__fill {
   height: 100%;
-  background: var(--color-primary);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: var(--control-radius);
+  animation: bar-grow var(--dur-slower) var(--ease-out) both;
 }
+
+/* ✅ NUEVO: valor numérico de barra */
+.bar__value {
+  width: 24px;
+  text-align: right;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ✅ NUEVO: stagger en barras */
+.bar:nth-child(1) { animation-delay: 0ms; }
+.bar:nth-child(2) { animation-delay: 80ms; }
+.bar:nth-child(3) { animation-delay: 160ms; }
+.bar:nth-child(4) { animation-delay: 240ms; }
+.bar:nth-child(5) { animation-delay: 320ms; }
 
 .detail-row {
   margin: var(--sp-1) 0;
@@ -422,17 +736,22 @@ select.control {
   color: var(--color-text-secondary);
 }
 
-/* ---------- Modal ---------- */
+/* ============================================================
+   MODAL
+   ============================================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: var(--z-modal);
   padding: var(--sp-4);
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
+
 .modal-card {
   background: var(--color-surface);
   border-radius: var(--radius-xl);
@@ -441,8 +760,10 @@ select.control {
   max-width: 520px;
   max-height: 85vh;
   overflow: auto;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-overlay);
+  animation: scale-in var(--dur-base) var(--ease-spring);
 }
+
 .modal-actions {
   display: flex;
   gap: var(--sp-3);
@@ -451,7 +772,9 @@ select.control {
   flex-wrap: wrap;
 }
 
-/* ---------- Auth (centrado en canvas) ---------- */
+/* ============================================================
+   AUTH (centrado en canvas)
+   ============================================================ */
 .auth-shell {
   min-height: 100vh;
   display: flex;
@@ -460,6 +783,7 @@ select.control {
   background: var(--color-canvas);
   padding: var(--sp-4);
 }
+
 .auth-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -467,7 +791,9 @@ select.control {
   box-shadow: var(--shadow-card);
   padding: var(--sp-8);
   width: 360px;
+  animation: rise var(--dur-slow) var(--ease-out) both;
 }
+
 .auth-card h1 {
   font-size: var(--fs-lg);
   margin-bottom: var(--sp-1);
@@ -477,19 +803,96 @@ select.control {
   margin: 0 0 var(--sp-6);
 }
 
-/* ---------- Responsive ---------- */
+/* ============================================================
+   SKELETON
+   ============================================================ */
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 100%;
+  margin-bottom: var(--sp-2);
+}
+.skeleton-line--short { width: 40%; }
+.skeleton-line--medium { width: 70%; }
+
+.skeleton-title {
+  height: 22px;
+  width: 50%;
+  margin-bottom: var(--sp-3);
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: var(--radius-xl);
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ============================================================
+   PAGINACIÓN
+   ============================================================ */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-top: var(--sp-4);
+}
+
+/* ============================================================
+   UTILIDADES DE ESPACIADO
+   ============================================================ */
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: var(--sp-1); }
+.mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); }
+.mt-4 { margin-top: var(--sp-4); }
+.mt-5 { margin-top: var(--sp-5); }
+.mt-6 { margin-top: var(--sp-6); }
+.mt-8 { margin-top: var(--sp-8); }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: var(--sp-1); }
+.mb-2 { margin-bottom: var(--sp-2); }
+.mb-3 { margin-bottom: var(--sp-3); }
+.mb-4 { margin-bottom: var(--sp-4); }
+.mb-6 { margin-bottom: var(--sp-6); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 900px) {
   .stats-grid,
   .grid-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 640px) {
   .grid-2,
   .grid-3,
   .stats-grid {
     grid-template-columns: 1fr;
   }
+
   .topbar {
     padding: 0 var(--sp-3);
     gap: var(--sp-3);

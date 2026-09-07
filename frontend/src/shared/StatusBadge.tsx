@@ -13,5 +13,11 @@ const CLASS: Record<Variant, string> = {
 };
 
 export function StatusBadge({ status, children }: { status: Variant; children?: ReactNode }) {
-  return <span className={CLASS[status]}>{children ?? status}</span>;
+  return (
+    <span className={CLASS[status]}>
+      {/* ✅ NUEVO: dot indicador visual */}
+      <span className="pill__dot" aria-hidden="true" />
+      {children ?? status}
+    </span>
+  );
 }
