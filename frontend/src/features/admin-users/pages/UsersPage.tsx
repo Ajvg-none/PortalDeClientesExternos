@@ -15,16 +15,14 @@ export function UsersPage() {
   const [list, setList] = useState<UsersList | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-
   const [filters, setFilters] = useState<{ q: string; role: string; isActive: string }>({
     q: '',
     role: '',
     isActive: '',
   });
   const [offset, setOffset] = useState(0);
-
-  const [actionUser, setActionUser] = useState<AuthUser | null>(null); // modal baja/reactivar
-  const [resetUser, setResetUser] = useState<AuthUser | null>(null); // modal reset
+  const [actionUser, setActionUser] = useState<AuthUser | null>(null);
+  const [resetUser, setResetUser] = useState<AuthUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
 
   async function load(nextOffset: number) {
@@ -90,91 +88,101 @@ export function UsersPage() {
         </Link>
       </div>
 
-      {notice && <p role="status" className="notice">{notice}</p>}
-      {error && <p role="alert" className="error">{error}</p>}
+      {/* ✅ NUEVO: contenedor .panel */}
+      <div className="panel">
+        {notice && <p role="status" className="notice">{notice}</p>}
+        {error && <p role="alert" className="error">{error}</p>}
 
-      <form onSubmit={applyFilters} className="toolbar" aria-label="Filtros de usuarios">
-        <div className="form-field form-field--inline">
-          <label htmlFor="f-nombre">Nombre / empresa</label>
-          <input id="f-nombre" className="control" value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} />
-        </div>
-        <div className="form-field form-field--inline">
-          <label htmlFor="f-rol">Rol</label>
-          <select id="f-rol" className="control" value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
-            <option value="">Todos</option>
-            <option>CLIENTE_EXTERNO</option>
-            <option>LABORATORIO</option>
-            <option>ADMINISTRADOR</option>
-          </select>
-        </div>
-        <div className="form-field form-field--inline">
-          <label htmlFor="f-estado">Estado</label>
-          <select id="f-estado" className="control" value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value }))}>
-            <option value="">Todos</option>
-            <option value="true">Activo</option>
-            <option value="false">Inactivo</option>
-          </select>
-        </div>
-        <button type="submit" className="btn">Aplicar filtros</button>
-        <button type="button" className="btn" onClick={clearFilters} disabled={!activeFiltering}>
-          Limpiar
-        </button>
-      </form>
+        <form onSubmit={applyFilters} className="toolbar panel__toolbar" aria-label="Filtros de usuarios">
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-nombre">Nombre / empresa</label>
+            <input id="f-nombre" className="control" value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} />
+          </div>
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-rol">Rol</label>
+            <select id="f-rol" className="control" value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
+              <option value="">Todos</option>
+              <option>CLIENTE_EXTERNO</option>
+              <option>LABORATORIO</option>
+              <option>ADMINISTRADOR</option>
+            </select>
+          </div>
+          <div className="form-field form-field--inline">
+            <label htmlFor="f-estado">Estado</label>
+            <select id="f-estado" className="control" value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value }))}>
+              <option value="">Todos</option>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </div>
+          <button type="submit" className="btn">Aplicar filtros</button>
+          <button type="button" className="btn" onClick={clearFilters} disabled={!activeFiltering}>
+            Limpiar
+          </button>
+        </form>
 
-      {!list && !error && <p className="muted">Cargando…</p>}
-      {list && (
-        <>
-          {list.data.length === 0 ? (
-            <p className="empty">No hay usuarios que coincidan.</p>
-          ) : (
-            <div className="table-scroll">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Usuario</th>
-                    <th>Empresa</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th className="is-actions">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.data.map((u: AuthUser) => (
-                    <tr key={u.id}>
-                      <td>{u.username}</td>
-                      <td>{u.companyName ?? '—'}</td>
-                      <td>{u.role}</td>
-                      <td>
-                        <span className={u.isActive ? 'pill pill--activo' : 'pill pill--inactivo'}>
-                          {u.isActive ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-                      <td className="is-actions">
-                        <div className="row-actions">
-                          <Link to={`/usuarios/${u.id}/editar`} className="btn btn--link">
-                            Editar
-                          </Link>
-                          <button className="btn btn--sm" onClick={() => setResetUser(u)}>
-                            Reset contraseña
-                          </button>
-                          <button className="btn btn--sm" onClick={() => setActionUser(u)}>
-                            {u.isActive ? 'Dar de baja' : 'Reactivar'}
-                          </button>
-                        </div>
-                      </td>
+        {!list && !error && <p className="muted">Cargando…</p>}
+
+        {list && (
+          <>
+            {list.data.length === 0 ? (
+              <p className="empty">No hay usuarios que coincidan.</p>
+            ) : (
+              <div className="table-scroll panel__body">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Empresa</th>
+                      <th>Rol</th>
+                      <th>Estado</th>
+                      <th className="is-actions">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {list.data.map((u: AuthUser) => (
+                      <tr key={u.id}>
+                        <td>{u.username}</td>
+                        <td>{u.companyName ?? '—'}</td>
+                        <td>{u.role}</td>
+                        <td>
+                          <span className={u.isActive ? 'pill pill--activo' : 'pill pill--inactivo'}>
+                            {u.isActive ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="is-actions">
+                          <div className="row-actions">
+                            {/* ✅ NUEVO: Editar unificado a btn--sm (antes era btn--link) */}
+                            <Link to={`/usuarios/${u.id}/editar`} className="btn btn--sm">
+                              Editar
+                            </Link>
+                            <button className="btn btn--sm" onClick={() => setResetUser(u)}>
+                              Reset contraseña
+                            </button>
+                            <button className="btn btn--sm" onClick={() => setActionUser(u)}>
+                              {u.isActive ? 'Dar de baja' : 'Reactivar'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ✅ NUEVO: pager dentro de panel__footer */}
+            <div className="panel__footer">
+              <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
             </div>
-          )}
-          <Pager total={list.total} limit={PAGE_SIZE} offset={offset} onPage={(o) => load(o)} />
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       {actionUser && (
         <Modal onClose={() => setActionUser(null)} titleId="user-action-title">
-          <h3 id="user-action-title" style={{ marginTop: 0 }}>
+          {/* ✅ NUEVO: quitar style={{ marginTop: 0 }} inline */}
+          <h3 id="user-action-title" className="mt-0">
             {actionUser.isActive ? 'Dar de baja' : 'Reactivar'} usuario
           </h3>
           <p>
@@ -198,14 +206,16 @@ export function UsersPage() {
           onClose={() => { setResetUser(null); setNewPassword(''); }}
           titleId="user-reset-title"
         >
-          <h3 id="user-reset-title" style={{ marginTop: 0 }}>
+          {/* ✅ NUEVO: quitar style={{ marginTop: 0 }} inline */}
+          <h3 id="user-reset-title" className="mt-0">
             Reset de contraseña — {resetUser.username}
           </h3>
           <div className="form-field">
             <label htmlFor="reset-pass">Nueva contraseña temporal (mín. 6)</label>
             <input id="reset-pass" className="control" type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" />
           </div>
-          <p className="muted" style={{ fontSize: 13 }}>
+          {/* ✅ NUEVO: usar muted--sm en lugar de style={{ fontSize: 13 }} */}
+          <p className="muted--sm">
             El usuario deberá cambiarla en su próximo inicio de sesión (DEC-6).
           </p>
           <div className="modal-actions">

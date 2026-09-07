@@ -35,10 +35,12 @@ export function TopBar({ role, username }: { role: Role; username: string }) {
     navigate('/login');
   }
 
+  // ✅ NUEVO: inicial del usuario para avatar
+  const initial = username.charAt(0).toUpperCase();
+
   return (
     <header className="topbar">
       <div className="topbar__brand">CROVEN</div>
-
       <nav className="topbar__nav" aria-label="Menú principal">
         {items.map((item) => (
           <NavLink
@@ -51,9 +53,14 @@ export function TopBar({ role, username }: { role: Role; username: string }) {
           </NavLink>
         ))}
       </nav>
-
       <div className="topbar__actions">
-        <span className="topbar__user">{username}</span>
+        {/* ✅ NUEVO: chip de usuario con avatar de inicial */}
+        <div className="topbar__user-chip">
+          <span className="topbar__avatar" aria-hidden="true">
+            {initial}
+          </span>
+          <span className="topbar__user">{username}</span>
+        </div>
         <button onClick={logout} aria-label="Cerrar sesión" className="btn">
           <LogOut size={18} color="var(--color-primary)" aria-hidden="true" /> Salir
         </button>

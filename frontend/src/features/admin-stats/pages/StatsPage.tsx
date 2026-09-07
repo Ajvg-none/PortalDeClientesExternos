@@ -31,6 +31,7 @@ export function StatsPage() {
   if (!data) return <p className="muted">Cargando…</p>;
 
   const maxMonth = Math.max(1, ...data.ordersByMonth.map((m) => m.total));
+  const maxClient = Math.max(1, ...data.topClients.map((c) => c.total));
 
   return (
     <div>
@@ -57,7 +58,8 @@ export function StatsPage() {
       </div>
 
       <section className="section">
-        <h2>Órdenes por mes</h2>
+        {/* ✅ NUEVO: section-label en dorado en lugar de h2 negro */}
+        <h2 className="section-label">Órdenes por mes</h2>
         <div role="img" aria-label="Gráfico de órdenes por mes">
           {data.ordersByMonth.map((m) => (
             <div key={m.month} className="bar">
@@ -65,21 +67,28 @@ export function StatsPage() {
               <div className="bar__track">
                 <div className="bar__fill" style={{ width: `${(m.total / maxMonth) * 100}%` }} />
               </div>
-              <span style={{ width: 24, textAlign: 'right' }}>{m.total}</span>
+              {/* ✅ NUEVO: bar__value en lugar de style={{ width: 24, textAlign: 'right' }} */}
+              <span className="bar__value">{m.total}</span>
             </div>
           ))}
         </div>
       </section>
 
       <section className="section">
-        <h2>Top clientes</h2>
-        <ol style={{ paddingLeft: 20 }}>
+        {/* ✅ NUEVO: section-label en dorado */}
+        <h2 className="section-label">Top clientes</h2>
+        {/* ✅ NUEVO: reemplazar <ol> crudo por barras horizontales coherentes */}
+        <div role="img" aria-label="Top clientes">
           {data.topClients.map((c) => (
-            <li key={c.company}>
-              {c.company} — {c.total}
-            </li>
+            <div key={c.company} className="bar">
+              <span className="bar__label">{c.company}</span>
+              <div className="bar__track">
+                <div className="bar__fill" style={{ width: `${(c.total / maxClient) * 100}%` }} />
+              </div>
+              <span className="bar__value">{c.total}</span>
+            </div>
           ))}
-        </ol>
+        </div>
       </section>
     </div>
   );
