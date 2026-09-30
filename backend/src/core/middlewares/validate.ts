@@ -21,4 +21,3 @@ export function validate(req: Request, res: Response, next: NextFunction): void 
   }
   next();
 }
-

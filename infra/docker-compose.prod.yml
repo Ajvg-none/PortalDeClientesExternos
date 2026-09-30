@@ -6,6 +6,7 @@
 # Uso: docker compose -f infra/docker-compose.prod.yml up -d
 # Secretos via .env.prod (fuera del repo)
 # ============================================================
+
 name: portal-clientes-externos-prod
 
 services:
@@ -32,6 +33,9 @@ services:
       context: ../backend
       target: prod
     container_name: portal-api-prod
+    # Ejecutar migraciones Prisma antes de levantar la API (hallazgo A.4).
+    # Fase 8 arrancaba con esquema vacío sin esto.
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
     environment:
       NODE_ENV: production
       PORT: 3000

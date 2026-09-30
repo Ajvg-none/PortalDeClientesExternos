@@ -29,7 +29,6 @@ export function Modal({
   // Focus trap + listener de Escape. Se registra una sola vez al montar.
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    const overlay = overlayRef.current; // <- capturar aquí
 
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -66,7 +65,7 @@ export function Modal({
 
     return () => {
       window.removeEventListener('keydown', onKey);
-      overlay?.removeEventListener('keydown', onKeyDown); // <- usar variable
+      overlayRef.current?.removeEventListener('keydown', onKeyDown);
       previouslyFocused?.focus?.();
     };
   }, []);
