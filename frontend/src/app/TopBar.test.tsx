@@ -23,9 +23,10 @@ function renderTopBar(role: 'CLIENTE_EXTERNO' | 'LABORATORIO' | 'ADMINISTRADOR')
 }
 
 describe('F6.1 - TopBar (Top Header Layout)', () => {
-  it('muestra el logo CROVEN y el usuario', () => {
+  it('muestra el logo de la marca y el usuario sin texto plano', () => {
     renderTopBar('ADMINISTRADOR');
-    expect(screen.getByText('CROVEN')).toBeInTheDocument();
+    expect(screen.getByAltText(/logo de croven/i)).toBeInTheDocument();
+    expect(screen.queryByText('CROVEN')).toBeNull();
     expect(screen.getByText('usuario')).toBeInTheDocument();
   });
 

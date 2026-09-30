@@ -1,0 +1,78 @@
+# ============================================================
+# docker-compose - STAGING (X7.4, paridad con produccion ARQ-2)
+# Usa los targets `prod` de los Dockerfiles (imagenes multi-stage).
+# Solo se publican los puertos necesarios para el smoke; la BD queda
+# en la red interna. El TLS/dominio se resuelve en Fase 8 (ARQ-3).
+# Uso: docker compose -f infra/docker-compose.staging.yml up -d --build --wait
+# ============================================================
+name: portal-clientes-externos-staging
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: portal-db-staging
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    volumes:
+      - pgdata_staging:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      target: prod
+    container_name: portal-api-staging
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${STAGING_JWT_SECRET:-staging-jwt-secret-change-me-not-for-production}
+      JWT_EXPIRES_IN: 8h
+      ANALYTICS_TIMEZONE: UTC
+      OPENAPI_ENABLED: "true"
+      DATABASE_URL: postgresql://portal:portal@db:5432/portal?schema=public
+    ports:
+      - "3000:3000"
+    # Solo para staging: expone los scripts de seed y su fuente TS (no se
+    # copian en la imagen prod para mantenerla minima). En produccion el alta
+    # de usuarios es via administrador.
+    volumes:
+      - ../backend/scripts:/app/scripts:ro
+      - ../backend/src:/app/src:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ../frontend
+      target: prod
+    container_name: portal-frontend-staging
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata_staging:

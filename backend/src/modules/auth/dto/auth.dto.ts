@@ -1,4 +1,5 @@
 import { body } from 'express-validator';
+import { passwordValidators } from '../../../core/validators';
 
 /** DTOs del modulo auth (U2.5, U2.8) con express-validator. */
 
@@ -11,8 +12,6 @@ export const loginValidators = [
 
 export const changePasswordValidators = [
   body('currentPassword').isString().withMessage('currentPassword es obligatoria'),
-  body('newPassword')
-    .isString()
-    .isLength({ min: 6, max: 72 })
-    .withMessage('newPassword debe tener entre 6 y 72 caracteres'),
+  // X7.2: politica de contrasenas compartida (8-72 + letra/numero/mayuscula)
+  ...passwordValidators('newPassword'),
 ];

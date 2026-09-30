@@ -1,6 +1,7 @@
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
 import { hashPassword, signToken, verifyPassword } from '../../../core/security';
+import { validatePasswordPolicy } from '../../../core/password-policy';
 import { toPublicUser, type PublicUser } from '../../../core/user-projection';
 
 export type { PublicUser } from '../../../core/user-projection';
@@ -47,6 +48,11 @@ export async function changePassword(
   const ok = await verifyPassword(currentPassword, user.passwordHash);
   if (!ok) {
     throw new ApiError(400, 'BAD_REQUEST', 'La contrasena actual es incorrecta');
+  }
+  // X7.2: defensa en profundidad (no depender solo del DTO)
+  const policy = validatePasswordPolicy(newPassword);
+  if (!policy.ok) {
+    throw new ApiError(400, 'BAD_REQUEST', policy.reasons.join('. '));
   }
   const passwordHash = await hashPassword(newPassword);
   const updated = await prisma.user.update({

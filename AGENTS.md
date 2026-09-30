@@ -50,9 +50,9 @@ trabajo óptico de forma digital, ordenada y trazable.
 | Integración externa | API Key en header `X-API-Key` |
 | Despliegue | Docker (multi-stage) + Docker Compose (dev y prod, anexo v1.2) |
 | Arquitectura | Modular por características: backend `modules/` · frontend `features/` (ARQ-1) |
-| Proxy / TLS (prod) | Nginx reverse proxy + Let's Encrypt (Certbot), dominio oficial (ARQ-3) |
+| Proxy / TLS (prod) | Cloudflared tunnel (Cloudflare SSL, sin dominio propio) (ARQ-3) |
 | Testing/Dev | Jest, Supertest, Nodemon, morgan, express-validator |
-| Docs API | OpenAPI/Swagger (documentar los endpoints de integración) |
+| Docs API | OpenAPI/Swagger (implementado en Fase 7, ver §12: `GET /api/docs` y `/api/docs/ui`) |
 | VCS | Git |
 | Lenguaje | TypeScript en backend y frontend (decisión v1.3 del anexo TXT) |
 
@@ -459,11 +459,12 @@ Resumen operativo de los pilares del anexo v1.2 del TXT (detalle completo allá;
 - **ARQ-2 — Docker:** Dockerfiles multi-stage (dev/prod); desarrollo 100% dentro de contenedores con Node
   20 LTS y PostgreSQL 16 fijos (dev = CI = prod); compose de desarrollo y de producción (regla R8).
   Implementación: B1.2 y Fase 8 (I8.3).
-- **ARQ-3 — Producción/SSL:** VPS con Docker; proxy inverso Nginx como único punto de entrada (terminación
-  SSL/TLS, redirección HTTP→HTTPS, enrutado `<dominio>/` → frontend y `<dominio>/api/` → backend);
-  certificados Let's Encrypt vía Certbot con renovación automática; sin certificados autofirmados en
-  producción. Implementación: Fase 8 (I8.1–I8.7).
-- `<dominio>` = dominio oficial del proyecto; se define en I8.2 antes de emitir certificados.
+- **ARQ-3 — Producción/SSL:** VPS con Docker; **Cloudflared tunnel** como único punto de entrada (conexión
+  outbound a Cloudflare, sin puertos públicos, sin dominio propio). Cloudflare gestiona SSL/TLS, emite y
+  renueva certificados automáticamente. Enrutado: `/` → frontend y `/api/` → backend. Implementación: Fase 8
+  (I8.1–I8.7).
+- **Cambio 2026-09:** se reemplaza Nginx + Let's Encrypt + dominio oficial por Cloudflared tunnel. Ver
+  `PLAN_DE_DESARROLLO.md` Fase 8 para detalles.
 
 ## 10. Ver la base de datos en pgAdmin (entorno local)
 
@@ -572,3 +573,40 @@ Contraseña común de los usuarios demo: **`Cambiar123!`**.
 API Key del middleware (no es un usuario): seed `npx tsx scripts/seed-apikey.ts`; valor dev
 `dev-middleware-api-key-0001` con header `X-API-Key` (RF-39/41). URLs de prueba: frontend
 `http://localhost:5173`, API `http://localhost:3000/api/health`.
+
+## 12. Fase 7 — contrato, endurecimiento y CI (v1.0)
+
+Implementado en la rama principal. Resumen operativo (el detalle de cada ítem está en el
+`PLAN_DE_DESARROLLO.md`):
+
+- **OpenAPI (X7.1):** capa de composición `backend/src/docs/` (`types.ts`, `registry.ts`, `document.ts`,
+  `router.ts`) + fragmentos públicos por módulo `backend/src/modules/<m>/openapi.ts` y tipos/schemas comunes
+  en `backend/src/core/openapi.ts` (incluye el health). Servido en `GET /api/docs` (JSON) y `GET /api/docs/ui`
+  (Swagger UI); desactivable con `OPENAPI_ENABLED=false`. El contrato real se valida en
+  `backend/tests/openapi-contract.integration.test.ts` (incluye 400/401/403/404/409 y `X-API-Key`).
+- **Política de contraseñas (X7.2, parcial con OK del dueño):** `backend/src/core/password-policy.ts`
+  (8-72 + letra + número + mayúscula), aplicada en DTO y servicio (defensa en profundidad); espejo en
+  `frontend/src/core/password-policy.ts`. El **límite de intentos de login queda pendiente de OK**.
+- **ESLint (X7.3):** flat configs `backend/eslint.config.mjs` y `frontend/eslint.config.mjs`; script
+  `npm run lint` en ambos paquetes.
+- **CI (X7.3/X7.4):** `.github/workflows/ci.yml` con job `verify` (estructura, lint, typecheck, unitarios,
+  integración y frontend, todo dentro de Docker) y job `images` (targets `prod` + staging + smoke).
+- **Staging y smoke (X7.4):** `infra/docker-compose.staging.yml` (imágenes `prod`, BD en red interna,
+  bind-mount de `backend/scripts` y `backend/src` **solo para el seed** de staging) y
+  `scripts/smoke.mjs` (`SMOKE_BASE_URL`, `SMOKE_FRONTEND_URL`, `SMOKE_API_KEY`; exit 0/1).
+
+### 12.1 Entorno de desarrollo y typecheck (X7.0)
+
+- `backend/tsconfig.json` es la config de **build** (`rootDir: src`) y **excluye `tests`**.
+  `backend/tsconfig.test.json` cubre `src` + `tests` con `types: ["node","jest"]` y `noEmit`; comandos
+  `npm run typecheck` y `npm run typecheck:tests`.
+- `ts-jest` compila cada test con los `compilerOptions` del tsconfig (ignora `include`/`exclude`), por eso la
+  suite corre aunque `tests` esté excluido del build.
+- El editor necesita el TypeScript del workspace: `.vscode/settings.json` fija
+  `backend/node_modules/typescript/lib` (TS 5.9.3, que reconoce `moduleResolution: node10`). Si el editor
+  marca la línea 5 de `tsconfig.json`, es porque usa un TS < 5.0.
+- El `node_modules` del host sirve **solo al IDE**; el runtime y las pruebas corren dentro de contenedores
+  (ARQ-2). Si al IDE le faltan dependencias: ejecutar `npm ci` en `backend/` (host).
+- Smoke local de staging:
+  `docker compose -f infra/docker-compose.staging.yml up -d --build --wait` → seed demo/apikey →
+  `SMOKE_BASE_URL=http://localhost:3000 SMOKE_FRONTEND_URL=http://localhost:8080 SMOKE_API_KEY=dev-middleware-api-key-0001 node scripts/smoke.mjs`.

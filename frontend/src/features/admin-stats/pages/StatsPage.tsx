@@ -1,4 +1,15 @@
 import { useEffect, useState } from 'react';
+import {
+  BarChart3,
+  Download,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  Calendar,
+  Building2,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
 import { reportsApi } from '../api/reports';
 import { httpDownload } from '../../../core/http';
 import type { DashboardData } from '../../../core/types';
@@ -10,7 +21,9 @@ export function StatsPage() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    reportsApi.dashboard().then(setData).catch((e) => setError(e instanceof Error ? e.message : 'Error'));
+    let active = true;
+    reportsApi.dashboard().then((d) => { if (active) setData(d); }).catch((e) => { if (active) setError(e instanceof Error ? e.message : 'Error'); });
+    return () => { active = false; };
   }, []);
 
   // REM-2026-09/RF-34: descarga autenticada (fetch + Authorization).
@@ -27,7 +40,15 @@ export function StatsPage() {
     }
   }
 
-  if (error) return <p role="alert" className="error">{error}</p>;
+  if (error) {
+    return (
+      <p role="alert" className="error" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <AlertCircle size={16} aria-hidden="true" />
+        <span>{error}</span>
+      </p>
+    );
+  }
+
   if (!data) return <p className="muted">Cargando…</p>;
 
   const maxMonth = Math.max(1, ...data.ordersByMonth.map((m) => m.total));
@@ -36,30 +57,54 @@ export function StatsPage() {
   return (
     <div>
       <div className="page-head">
-        <h1>Estadísticas</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <BarChart3 size={24} color="var(--color-primary)" aria-hidden="true" />
+          <span>Estadísticas</span>
+        </h1>
         <button className="btn btn--primary" onClick={exportCsv} disabled={exporting}>
-          {exporting ? 'Exportando…' : 'Exportar CSV'}
+          {exporting ? (
+            <>
+              <Loader2 size={16} className="btn__spinner" aria-hidden="true" />
+              <span>Exportando…</span>
+            </>
+          ) : (
+            <>
+              <Download size={16} aria-hidden="true" />
+              <span>Exportar CSV</span>
+            </>
+          )}
         </button>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-card__label">Total órdenes</div>
-          <div className="stat-card__value">{data.statusSummary.total}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div className="stat-card__label">Total órdenes</div>
+            <TrendingUp size={18} color="var(--color-primary)" aria-hidden="true" />
+          </div>
+          <div className="stat-card__value tabular-nums">{data.statusSummary.total}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card__label">Pendientes</div>
-          <div className="stat-card__value">{data.statusSummary.pendiente}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div className="stat-card__label">Pendientes</div>
+            <Clock size={18} color="var(--color-badge-pendiente-text)" aria-hidden="true" />
+          </div>
+          <div className="stat-card__value tabular-nums">{data.statusSummary.pendiente}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card__label">Sincronizadas</div>
-          <div className="stat-card__value">{data.statusSummary.sincronizadas}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div className="stat-card__label">Sincronizadas</div>
+            <CheckCircle2 size={18} color="var(--color-badge-sync-text)" aria-hidden="true" />
+          </div>
+          <div className="stat-card__value tabular-nums">{data.statusSummary.sincronizadas}</div>
         </div>
       </div>
 
-      <section className="section">
-        {/* ✅ NUEVO: section-label en dorado en lugar de h2 negro */}
-        <h2 className="section-label">Órdenes por mes</h2>
+      <section className="section panel" style={{ marginBottom: 24 }}>
+        <h2 className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Calendar size={18} aria-hidden="true" />
+          <span>Órdenes por mes</span>
+        </h2>
         <div role="img" aria-label="Gráfico de órdenes por mes">
           {data.ordersByMonth.map((m) => (
             <div key={m.month} className="bar">
@@ -67,25 +112,27 @@ export function StatsPage() {
               <div className="bar__track">
                 <div className="bar__fill" style={{ width: `${(m.total / maxMonth) * 100}%` }} />
               </div>
-              {/* ✅ NUEVO: bar__value en lugar de style={{ width: 24, textAlign: 'right' }} */}
-              <span className="bar__value">{m.total}</span>
+              <span className="bar__value tabular-nums">{m.total}</span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="section">
-        {/* ✅ NUEVO: section-label en dorado */}
-        <h2 className="section-label">Top clientes</h2>
-        {/* ✅ NUEVO: reemplazar <ol> crudo por barras horizontales coherentes */}
+      <section className="section panel">
+        <h2 className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Building2 size={18} aria-hidden="true" />
+          <span>Top clientes</span>
+        </h2>
         <div role="img" aria-label="Top clientes">
           {data.topClients.map((c) => (
             <div key={c.company} className="bar">
-              <span className="bar__label">{c.company}</span>
+              <span className="bar__label" title={c.company} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {c.company}
+              </span>
               <div className="bar__track">
                 <div className="bar__fill" style={{ width: `${(c.total / maxClient) * 100}%` }} />
               </div>
-              <span className="bar__value">{c.total}</span>
+              <span className="bar__value tabular-nums">{c.total}</span>
             </div>
           ))}
         </div>

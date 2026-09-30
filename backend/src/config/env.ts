@@ -15,6 +15,9 @@ export const env = {
   // para interpretar los filtros por rango de fechas (REM-2026-09/R2.8)
   analyticsTimezone: process.env.ANALYTICS_TIMEZONE ?? 'UTC',
   databaseUrl: process.env.DATABASE_URL ?? '',
+  // X7.1: documentacion OpenAPI/Swagger. Activa por defecto; se desactiva con
+  // OPENAPI_ENABLED=false (p. ej. en produccion si no se desea exponer /api/docs).
+  openapiEnabled: (process.env.OPENAPI_ENABLED ?? 'true') !== 'false',
 } as const;
 
 /**

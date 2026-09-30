@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AuthContext, useAuth, type AuthSession } from './app/AuthContext';
 import { RequireAuth, RequirePasswordChange, RequireRole } from './app/guards';
 import { TopBar, Layout } from './app/TopBar';
@@ -26,7 +26,8 @@ export function App() {
   const authValue: AuthSession = {
     user,
     token: session.getToken(),
-    setSession: (_token, u) => {
+    setSession: (token, u) => {
+      session.setToken(token);
       session.setUser(u);
       setUser(u);
     },
@@ -97,8 +98,13 @@ export function App() {
               path="*"
               element={
                 <Layout>
-                  <h1>404</h1>
-                  <p>Página no encontrada.</p>
+                  <div className="card card--narrow" style={{ textAlign: 'center', padding: '48px 24px', margin: '32px auto' }}>
+                    <h1 style={{ fontSize: 40, color: 'var(--color-primary)', marginBottom: 8 }}>404</h1>
+                    <p style={{ fontSize: 16, color: 'var(--color-text-secondary)', marginBottom: 16 }}>Página no encontrada.</p>
+                    <Link to="/ordenes" className="btn btn--primary" style={{ display: 'inline-flex' }}>
+                      Ir a mis órdenes
+                    </Link>
+                  </div>
                 </Layout>
               }
             />

@@ -4,9 +4,11 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
-  // Por defecto la suite unitaria NO incluye los tests de integración (requieren BD):
   testPathIgnorePatterns: ['/node_modules/', '\\.integration\\.test\\.ts$'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   clearMocks: true,
   verbose: true,
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+  },
 };

@@ -20,4 +20,3 @@ export function requireRole(...allowed: UserRole[]): RequestHandler {
   };
 }
 
-export const requireAdmin = requireRole(UserRole.ADMINISTRADOR);

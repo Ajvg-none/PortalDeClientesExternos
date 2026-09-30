@@ -1,52 +1,53 @@
 # ============================================================
-# docker-compose - ENTORNO DE DESARROLLO (ARQ-2, anexo v1.2)
-# Orquesta db (PostgreSQL 16), api (Node 20, hot-reload) y
-# frontend (Vite dev). Todo el desarrollo corre en contenedores.
-# Uso: docker compose -f infra/docker-compose.yml up --build
+# docker-compose - ENTORNO DE PRODUCCION (ARQ-2, anexo v1.2)
+# Orquesta db (PostgreSQL 16), api (Node 20), frontend (Nginx
+# estatico) y cloudflared (tunel Cloudflare). Sin puertos
+# publicos: cloudflared hace outbound connection a Cloudflare.
+# Uso: docker compose -f infra/docker-compose.prod.yml up -d
+# Secretos via .env.prod (fuera del repo)
 # ============================================================
-name: portal-clientes-externos
+
+name: portal-clientes-externos-prod
 
 services:
   db:
     image: postgres:16-alpine
-    container_name: portal-db
+    container_name: portal-db-prod
     environment:
-      POSTGRES_USER: portal
-      POSTGRES_PASSWORD: portal
-      POSTGRES_DB: portal
-    ports:
-      - "5433:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-portal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-portal}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Crea la BD de pruebas portal_test al inicializar el volumen
-      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U portal -d portal"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portal} -d ${POSTGRES_DB:-portal}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+    networks:
+      - internal
 
   api:
     build:
       context: ../backend
-      target: dev
-    container_name: portal-api
+      target: prod
+    container_name: portal-api-prod
+    # Ejecutar migraciones Prisma antes de levantar la API (hallazgo A.4).
+    # Fase 8 arrancaba con esquema vacío sin esto.
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3000
-      JWT_SECRET: dev-jwt-secret-change-me
-      JWT_EXPIRES_IN: 8h
-      DATABASE_URL: postgresql://portal:portal@db:5432/portal?schema=public
-      TEST_DATABASE_URL: postgresql://portal:portal@db:5432/portal_test?schema=public
-    ports:
-      - "3000:3000"
-    volumes:
-      - ../backend:/app
-      - /app/node_modules
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portal}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-portal}?schema=public
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+    restart: unless-stopped
+    networks:
+      - internal
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 10s
@@ -56,24 +57,30 @@ services:
   frontend:
     build:
       context: ../frontend
-      target: dev
-    container_name: portal-frontend
+      target: prod
+    container_name: portal-frontend-prod
+    restart: unless-stopped
+    networks:
+      - internal
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: portal-cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
     environment:
-      VITE_API_PROXY_TARGET: http://api:3000
-    ports:
-      - "5173:5173"
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
+      TUNNEL_TOKEN: ${CLOUDFLARED_TOKEN}
     depends_on:
       api:
         condition: service_healthy
-    healthcheck:
-      # 127.0.0.1 (no localhost: Vite escucha IPv4 y wget resolveria ::1)
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5173 >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      frontend:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - internal
 
 volumes:
   pgdata:
+
+networks:
+  internal:
+    driver: bridge

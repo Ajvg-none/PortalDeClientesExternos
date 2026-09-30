@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react';
 // backend se alcanza por el nombre de servicio Docker "api".
 export default defineConfig({
   plugins: [react()],
+  build: {
+    sourcemap: true,
+  },
   server: {
     host: true,
     port: 5173,

@@ -1,9 +1,28 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  UserPlus,
+  UserCheck,
+  ArrowLeft,
+  Save,
+  Building2,
+  Lock,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Shield,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
 import { usersApi, type UserInput } from '../api/users';
+import { Select } from '../../../shared/Select';
+import { PASSWORD_POLICY_MESSAGE, isValidPassword } from '../../../core/password-policy';
 import type { AuthUser } from '../../../core/types';
 
 const ROLES = ['CLIENTE_EXTERNO', 'LABORATORIO', 'ADMINISTRADOR'] as const;
+
+const ROLE_OPTIONS = ROLES.map((r) => ({ value: r, label: r }));
 
 /**
  * F6.7/REM-2026-09 - Alta (POST /api/users) y edicion (PATCH /api/users/:id)
@@ -86,64 +105,123 @@ export function UserFormPage() {
   const invalid =
     !form.username.trim() ||
     (isClient && !form.companyName?.trim()) ||
-    (!isEdit && (form.password?.length ?? 0) < 6);
+    (!isEdit && !isValidPassword(form.password ?? ''));
 
   if (loading) return <p className="muted">Cargando…</p>;
 
   return (
     <div className="card card--form">
-      <div className="page-head">
-        <h1>{isEdit ? 'Editar usuario' : 'Nuevo usuario'}</h1>
-        <Link to="/usuarios" className="btn">← Volver</Link>
+      <div className="page-head" style={{ marginBottom: 20 }}>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {isEdit ? (
+            <UserCheck size={24} color="var(--color-primary)" aria-hidden="true" />
+          ) : (
+            <UserPlus size={24} color="var(--color-primary)" aria-hidden="true" />
+          )}
+          <span>{isEdit ? 'Editar usuario' : 'Nuevo usuario'}</span>
+        </h1>
+        <Link to="/usuarios" className="btn btn--sm">
+          <ArrowLeft size={14} aria-hidden="true" />
+          <span>Volver</span>
+        </Link>
       </div>
 
-      {error && <p role="alert" className="error">{error}</p>}
+      {error && (
+        <p role="alert" className="error" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <AlertCircle size={16} aria-hidden="true" />
+          <span>{error}</span>
+        </p>
+      )}
 
       <form onSubmit={submit} noValidate>
         <div className="grid-2">
           <div className="form-field">
-            <label htmlFor="user-username">Username *</label>
-            <input id="user-username" className="control" value={form.username} onChange={(e) => set('username', e.target.value)} />
+            <label htmlFor="user-username">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <User size={13} aria-hidden="true" /> Username *
+              </span>
+            </label>
+            <input id="user-username" className="control" placeholder="Ej: optica_norte" value={form.username} onChange={(e) => set('username', e.target.value)} />
           </div>
           <div className="form-field">
-            <label htmlFor="user-role">Rol *</label>
-            <select id="user-role" className="control" value={form.role} onChange={(e) => set('role', e.target.value as UserInput['role'])}>
-              {ROLES.map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+            <label htmlFor="user-role">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Shield size={13} aria-hidden="true" /> Rol *
+              </span>
+            </label>
+            <Select
+              id="user-role"
+              value={form.role}
+              onChange={(v) => set('role', v as UserInput['role'])}
+              options={ROLE_OPTIONS}
+            />
           </div>
 
           {isClient && (
             <div className="form-field">
-              <label htmlFor="user-company">Empresa / cliente *</label>
-              <input id="user-company" className="control" value={form.companyName ?? ''} onChange={(e) => set('companyName', e.target.value)} />
+              <label htmlFor="user-company">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Building2 size={13} aria-hidden="true" /> Empresa / cliente *
+                </span>
+              </label>
+              <input id="user-company" className="control" placeholder="Nombre comercial de la óptica" value={form.companyName ?? ''} onChange={(e) => set('companyName', e.target.value)} />
             </div>
           )}
 
           {!isEdit && (
             <div className="form-field">
-              <label htmlFor="user-password">Contraseña temporal * (mín. 6)</label>
-              <input id="user-password" className="control" type="text" value={form.password ?? ''} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" />
+              <label htmlFor="user-password">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Lock size={13} aria-hidden="true" /> Contraseña temporal *
+                </span>
+              </label>
+              <input id="user-password" className="control" type="password" placeholder={PASSWORD_POLICY_MESSAGE} value={form.password ?? ''} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" />
             </div>
           )}
 
           <div className="form-field">
-            <label htmlFor="user-email">Email (contacto interno)</label>
-            <input id="user-email" className="control" type="email" value={form.email ?? ''} onChange={(e) => set('email', e.target.value)} />
+            <label htmlFor="user-email">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Mail size={13} aria-hidden="true" /> Email (contacto interno)
+              </span>
+            </label>
+            <input id="user-email" className="control" type="email" placeholder="contacto@optica.cl" value={form.email ?? ''} onChange={(e) => set('email', e.target.value)} />
           </div>
           <div className="form-field">
-            <label htmlFor="user-phone">Teléfono</label>
-            <input id="user-phone" className="control" value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)} />
+            <label htmlFor="user-phone">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Phone size={13} aria-hidden="true" /> Teléfono
+              </span>
+            </label>
+            <input id="user-phone" className="control" placeholder="+56 9 1234 5678" value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)} />
           </div>
           <div className="form-field" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="user-address">Dirección</label>
-            <textarea id="user-address" className="control" rows={2} value={form.address ?? ''} onChange={(e) => set('address', e.target.value)} />
+            <label htmlFor="user-address">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <MapPin size={13} aria-hidden="true" /> Dirección
+              </span>
+            </label>
+            <textarea id="user-address" className="control" rows={2} placeholder="Dirección de la sucursal..." value={form.address ?? ''} onChange={(e) => set('address', e.target.value)} />
           </div>
         </div>
 
         <button type="submit" className="btn btn--primary" disabled={saving || invalid} style={{ marginTop: 24 }}>
-          {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear usuario'}
+          {saving ? (
+            <>
+              <Loader2 size={16} className="btn__spinner" aria-hidden="true" />
+              <span>Guardando…</span>
+            </>
+          ) : isEdit ? (
+            <>
+              <Save size={16} aria-hidden="true" />
+              <span>Guardar cambios</span>
+            </>
+          ) : (
+            <>
+              <UserPlus size={16} aria-hidden="true" />
+              <span>Crear usuario</span>
+            </>
+          )}
         </button>
       </form>
     </div>

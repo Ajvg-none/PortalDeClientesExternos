@@ -1,0 +1,25 @@
+# ============================================================
+# cloudflared.yml - Configuracion del tunel Cloudflare
+# Se usa con: cloudflared tunnel create portal
+#             cloudflared tunnel route dns portal <subdominio>
+# El archivo cloudflared.yml se genera automaticamente en
+# ~/.cloudflared/<tunnel-id>.json al crear el tunel.
+# Este archivo es de referencia para la configuracion manual.
+# ============================================================
+
+# Configuracion de referencia (se aplica via cloudflared tunnel route)
+tunnel: <tunnel-id>
+credentials-file: /root/.cloudflared/<tunnel-id>.json
+
+ingress:
+  # Frontend (SPA)
+  - hostname: <subdominio>.trycloudflare.com
+    service: http://frontend:80
+
+  # Backend API (incluye endpoints del middleware)
+  - hostname: <subdominio>.trycloudflare.com
+    service: http://api:3000
+    path: /api/
+
+  # Default: 404
+  - service: http_status:404
