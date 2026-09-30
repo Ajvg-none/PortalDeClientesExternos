@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 /** Pager minimalista (F6.3/REM-6): paginacion por offset/total. */
 export function Pager({
   total,
@@ -14,17 +16,25 @@ export function Pager({
   const current = Math.floor(offset / limit) + 1;
 
   return (
-    // ✅ NUEVO: contenedor .pager en lugar de .toolbar con inline styles
     <div className="pager">
-      <button className="btn btn--sm" disabled={offset <= 0} onClick={() => onPage(Math.max(0, offset - limit))}>
-        ← Anterior
+      <button
+        className="btn btn--sm"
+        disabled={offset <= 0}
+        onClick={() => onPage(Math.max(0, offset - limit))}
+      >
+        <ChevronLeft size={14} aria-hidden="true" />
+        <span>Anterior</span>
       </button>
-      {/* ✅ NUEVO: muted--sm en lugar de style={{ fontSize: 13 }} */}
-      <span className="muted--sm">
+      <span className="muted--sm tabular-nums">
         Página {current} de {pages}
       </span>
-      <button className="btn btn--sm" disabled={offset + limit >= total} onClick={() => onPage(offset + limit)}>
-        Siguiente →
+      <button
+        className="btn btn--sm"
+        disabled={offset + limit >= total}
+        onClick={() => onPage(offset + limit)}
+      >
+        <span>Siguiente</span>
+        <ChevronRight size={14} aria-hidden="true" />
       </button>
     </div>
   );

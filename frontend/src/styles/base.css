@@ -100,11 +100,31 @@ main {
   display: block;
 }
 
+/* Texto solo para lectores de pantalla (a11y) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Contenedor de contenido (max-w-7xl centrado, anexo v1.4) */
 .page {
   max-width: var(--content-max-width);
   margin: 0 auto;
   padding: var(--sp-6);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page > * {
   width: 100%;
 }
 
@@ -130,6 +150,28 @@ main {
   flex-wrap: wrap;
   gap: var(--sp-3);
   align-items: center;
+}
+
+/* Tipografía de alta precisión para números tabulares */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Scrollbar refinado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.16);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
 }
 
 /* ✅ A11y: respeta prefers-reduced-motion */

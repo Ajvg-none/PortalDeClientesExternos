@@ -1,6 +1,10 @@
 import express, { type Express } from 'express';
 import { requestLogger } from './core/logger';
 import { errorHandler, notFoundHandler } from './core/middlewares/error-handler';
+import { env } from './config/env';
+import { buildDocument } from './docs/document';
+import { collectFragments } from './docs/registry';
+import { createDocsRouter } from './docs/router';
 import authRouter from './modules/auth/routes';
 import usersRouter from './modules/users/routes';
 import ordersRouter from './modules/orders/routes';
@@ -31,6 +35,11 @@ export function createApp(): Express {
   app.use('/api/orders', ordersRouter);
   app.use('/api/external-orders', externalOrdersRouter);
   app.use('/api/reports', reportsRouter);
+
+  // Documentacion OpenAPI/Swagger (X7.1), se puede desactivar por entorno
+  if (env.openapiEnabled) {
+    app.use('/api/docs', createDocsRouter(buildDocument(collectFragments())));
+  }
 
   // Errores (404 + manejador global, formato JSON { code, message })
   app.use(notFoundHandler);

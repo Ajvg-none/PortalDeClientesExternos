@@ -18,14 +18,22 @@ export function Modal({
   width?: number;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
 
+  // Mantener onCloseRef sincronizado con la última prop 'onClose' sin mutar
+  // el ref durante el render (fix react-hooks/refs, hallazgo A.2).
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Focus trap + listener de Escape. Se registra una sola vez al montar.
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
       }
     }
 
@@ -48,6 +56,7 @@ export function Modal({
 
     window.addEventListener('keydown', onKey);
     overlayRef.current?.addEventListener('keydown', onKeyDown);
+
     // mover el foco al primer control del modal
     const initial = overlayRef.current?.querySelector<HTMLElement>(
       'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]',
@@ -59,7 +68,7 @@ export function Modal({
       overlayRef.current?.removeEventListener('keydown', onKeyDown);
       previouslyFocused?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div

@@ -1,6 +1,6 @@
 import { body, query } from 'express-validator';
 import { UserRole } from '@prisma/client';
-import { bigIntIdParamValidators } from '../../../core/validators';
+import { bigIntIdParamValidators, passwordValidators } from '../../../core/validators';
 
 /** DTOs del modulo users (U2.6/U2.7, RF-23…27) con express-validator. */
 
@@ -11,10 +11,8 @@ export const createUserValidators = [
     .trim()
     .isLength({ min: 3, max: 100 })
     .withMessage('username debe tener entre 3 y 100 caracteres'),
-  body('password')
-    .isString()
-    .isLength({ min: 6, max: 72 })
-    .withMessage('password debe tener entre 6 y 72 caracteres'),
+  // X7.2: politica de contrasenas compartida (8-72 + letra/numero/mayuscula)
+  ...passwordValidators('password'),
   body('role').isIn(USER_ROLES).withMessage(`role debe ser uno de: ${USER_ROLES.join(', ')}`),
   // companyName NO es .optional(): el custom debe correr tambien cuando el
   // campo falta (si no, la regla de CLIENTE_EXTERNO nunca se evaluaria)
@@ -73,9 +71,4 @@ export const setActiveValidators = [
   body('isActive').isBoolean().withMessage('isActive es obligatorio (true|false)'),
 ];
 
-export const resetPasswordValidators = [
-  body('newPassword')
-    .isString()
-    .isLength({ min: 6, max: 72 })
-    .withMessage('newPassword debe tener entre 6 y 72 caracteres'),
-];
+export const resetPasswordValidators = passwordValidators('newPassword');

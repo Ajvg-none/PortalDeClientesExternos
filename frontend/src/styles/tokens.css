@@ -7,30 +7,40 @@
   /* ---------- Color ---------- */
   --color-primary: #9e7e47;
   --color-primary-hover: #856837;
+  --color-primary-dark: #745625;
+  --color-primary-light: #c2a267;
   --color-primary-soft: #f5ecd9;
-  --color-text: #222222;
-  --color-text-body: #444444;
-  --color-text-secondary: #6e6e6e;
-  --color-canvas: #f8f9fa;
+  --color-primary-subtle: #fbf8f2;
+  --color-primary-gradient: linear-gradient(135deg, #9e7e47 0%, #b89758 100%);
+  --color-primary-gradient-hover: linear-gradient(135deg, #8a6c3a 0%, #a68449 100%);
+  --color-text: #1a1a1a;
+  --color-text-body: #3c3c3c;
+  --color-text-secondary: #656565;
+  --color-canvas: #f6f7f9;
   --color-surface: #ffffff;
+  --color-surface-translucent: rgba(255, 255, 255, 0.88);
   --color-border: rgba(0, 0, 0, 0.08);
   --color-border-strong: rgba(0, 0, 0, 0.16);
+  --color-border-accent: rgba(158, 126, 71, 0.28);
 
-  /* ---------- Estados / badges ---------- */
-  --color-badge-pendiente-bg: #fff8e7;
-  --color-badge-pendiente-text: #9e7e47;
-  --color-badge-pendiente-border: #f0e2c3;
+  /* ---------- Estados / badges (WCAG AA 4.5:1+) ---------- */
+  --color-badge-pendiente-bg: #fff8e8;
+  --color-badge-pendiente-text: #745625;
+  --color-badge-pendiente-border: #ebd7ae;
   --color-badge-sync-bg: #e6f4ea;
-  --color-badge-sync-text: #137333;
+  --color-badge-sync-text: #0f6226;
+  --color-badge-sync-border: #b7e1cd;
   --color-badge-error-bg: #fce8e6;
-  --color-badge-error-text: #c5221f;
+  --color-badge-error-text: #aa1a18;
+  --color-badge-error-border: #f5c2bd;
 
-  /* ---------- Sombras ---------- */
+  /* ---------- Sombras multicapa refinadas ---------- */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
-  --shadow-overlay: 0 20px 60px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 18px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --shadow-hover: 0 12px 30px -4px rgba(158, 126, 71, 0.14), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 24px rgba(158, 126, 71, 0.25);
+  --shadow-overlay: 0 24px 64px -8px rgba(15, 23, 42, 0.28), 0 8px 24px -4px rgba(15, 23, 42, 0.12);
 
   /* ---------- Radios ---------- */
   --radius-xl: 12px;

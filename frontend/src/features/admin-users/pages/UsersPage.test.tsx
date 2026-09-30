@@ -19,20 +19,43 @@ vi.mock('../api/users', () => ({
     resetPassword: vi.fn(),
   },
 }));
+
 import { usersApi } from '../api/users';
 
 const USERS = {
   data: [
-    { id: '1', username: 'optia', role: 'CLIENTE_EXTERNO', companyName: 'Optica Uno', email: null, isActive: true, mustChangePassword: true },
-    { id: '2', username: 'lab1', role: 'LABORATORIO', companyName: null, email: null, isActive: false, mustChangePassword: false },
+    {
+      id: '1',
+      username: 'optia',
+      role: 'CLIENTE_EXTERNO',
+      companyName: 'Optica Uno',
+      email: null,
+      isActive: true,
+      mustChangePassword: true,
+    },
+    {
+      id: '2',
+      username: 'lab1',
+      role: 'LABORATORIO',
+      companyName: null,
+      email: null,
+      isActive: false,
+      mustChangePassword: false,
+    },
   ],
   total: 2,
 };
 
 function renderPage() {
-  const admin = { username: 'admin', role: 'ADMINISTRADOR', mustChangePassword: false } as never;
+  const admin = {
+    username: 'admin',
+    role: 'ADMINISTRADOR',
+    mustChangePassword: false,
+  } as never;
   return render(
-    <AuthContext.Provider value={{ user: admin, token: 't', setSession: vi.fn(), clear: vi.fn() }}>
+    <AuthContext.Provider
+      value={{ user: admin, token: 't', setSession: vi.fn(), clear: vi.fn() }}
+    >
       <MemoryRouter>
         <UsersPage />
       </MemoryRouter>
@@ -54,16 +77,16 @@ describe('F6.7 - UsersPage (REM-2026-09)', () => {
     expect(screen.queryByText(/eliminar/i)).toBeNull();
   });
 
-  it('filtra por nombre/rol/estado con Aplicar y Limpiar', async () => {
+  it('filtra por nombre/rol/estado con Aplicar', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('optia');
-
     await user.type(screen.getByLabelText(/nombre \/ empresa/i), 'optia');
-    await user.selectOptions(screen.getByLabelText('Rol'), 'CLIENTE_EXTERNO');
-    await user.selectOptions(screen.getByLabelText('Estado'), 'true');
+    await user.click(screen.getByLabelText('Rol'));
+    await user.click(screen.getByRole('option', { name: 'CLIENTE_EXTERNO' }));
+    await user.click(screen.getByLabelText('Estado'));
+    await user.click(screen.getByRole('option', { name: 'Activo' }));
     await user.click(screen.getByRole('button', { name: /aplicar filtros/i }));
-
     const calls = (usersApi.list as ReturnType<typeof vi.fn>).mock.calls;
     const last = calls[calls.length - 1][0] as Record<string, string>;
     expect(last.q).toBe('optia');
@@ -71,11 +94,32 @@ describe('F6.7 - UsersPage (REM-2026-09)', () => {
     expect(last.isActive).toBe('true');
   });
 
+  it('Limpiar resetea filtros y recarga sin parámetros (fix closure estancada A.6)', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('optia');
+    // Aplicar filtros primero
+    await user.type(screen.getByLabelText(/nombre \/ empresa/i), 'optia');
+    await user.click(screen.getByLabelText('Rol'));
+    await user.click(screen.getByRole('option', { name: 'CLIENTE_EXTERNO' }));
+    await user.click(screen.getByLabelText('Estado'));
+    await user.click(screen.getByRole('option', { name: 'Activo' }));
+    await user.click(screen.getByRole('button', { name: /aplicar filtros/i }));
+    // Click en Limpiar
+    await user.click(screen.getByRole('button', { name: /limpiar/i }));
+    // El último llamado a list NO debe incluir q/role/isActive (bug anterior
+    // sí los mandaba por closure estancada del setTimeout).
+    const calls = (usersApi.list as ReturnType<typeof vi.fn>).mock.calls;
+    const last = calls[calls.length - 1][0] as Record<string, string>;
+    expect(last.q).toBeUndefined();
+    expect(last.role).toBeUndefined();
+    expect(last.isActive).toBeUndefined();
+  });
+
   it('dar de baja pide confirmacion y llama al endpoint de estado (sin DELETE)', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('optia');
-
     const rowButtons = screen.getAllByRole('button', { name: /dar de baja/i });
     await user.click(rowButtons[rowButtons.length - 1]); // ultima fila activa
     const dialog = screen.getByRole('dialog');
@@ -88,7 +132,6 @@ describe('F6.7 - UsersPage (REM-2026-09)', () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('optia');
-
     await user.click(screen.getAllByRole('button', { name: /reset contraseña/i })[0]);
     const pass = screen.getByLabelText(/nueva contraseña/i);
     await user.type(pass, 'Nueva123');

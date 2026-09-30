@@ -2,12 +2,21 @@ import { UserRole, Prisma } from '@prisma/client';
 import { prisma } from '../../../core/prisma';
 import { ApiError } from '../../../core/errors';
 import { hashPassword } from '../../../core/security';
+import { validatePasswordPolicy } from '../../../core/password-policy';
 import { toPublicUser, type PublicUser } from '../../../core/user-projection';
 
 /**
  * Servicios de administracion de usuarios (U2.6/U2.7, RF-23…RF-27).
  * SIN borrado fisico (DEC-4): la baja es exclusivamente is_active = false.
  */
+
+/** X7.2: defensa en profundidad; el DTO ya valida, aqui no se puede saltar. */
+function assertPasswordPolicy(password: string): void {
+  const policy = validatePasswordPolicy(password);
+  if (!policy.ok) {
+    throw new ApiError(400, 'BAD_REQUEST', policy.reasons.join('. '));
+  }
+}
 
 export interface CreateUserInput {
   username: string;
@@ -67,6 +76,7 @@ async function assertEmailFree(email: string, excludeId?: bigint): Promise<void>
 export async function createUser(input: CreateUserInput): Promise<PublicUser> {
   await assertUsernameFree(input.username);
   if (input.email) await assertEmailFree(input.email);
+  assertPasswordPolicy(input.password);
   const passwordHash = await hashPassword(input.password);
   const user = await prisma.user.create({
     data: {
@@ -144,6 +154,7 @@ export async function setUserActive(id: bigint, isActive: boolean): Promise<Publ
 export async function resetUserPassword(id: bigint, newPassword: string): Promise<PublicUser> {
   const current = await prisma.user.findUnique({ where: { id } });
   if (!current) throw new ApiError(404, 'NOT_FOUND', 'Usuario no encontrado');
+  assertPasswordPolicy(newPassword);
   const passwordHash = await hashPassword(newPassword);
   const user = await prisma.user.update({
     where: { id },

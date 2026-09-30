@@ -345,22 +345,28 @@ Checklist de cierre. Cada sub-ítem exige su prueba en verde (TDD) y las suites 
 Depende de todas las fases anteriores. Endurecimiento marcado como "(recomendado)" requiere visto bueno del
 dueño del proyecto antes de implementarse (no está en RF, proviene de la revisión).
 
-- [ ] **X7.1 Documentación OpenAPI del contrato.** Spec de endpoints internos y de integración (incluida la
+- [x] **X7.0 Preparación del typecheck de tests (previo).** `backend/tsconfig.test.json` (incluye `src` + `tests`,
+      `types: node/jest`, `noEmit`) + script `typecheck:tests`; `.vscode/settings.json` fija el TypeScript del
+      workspace. Criterio: `tsc -p tsconfig.test.json --noEmit` y `tsc -p tsconfig.json --noEmit` en 0 errores.
+
+- [x] **X7.1 Documentación OpenAPI del contrato.** Spec de endpoints internos y de integración (incluida la
       autenticación por API Key y los códigos de error 401/404/409) generada desde el código. Criterio:
       prueba de validación verifica que cada endpoint documentado responde conforme a su spec (contrato real
       vs spec).
-- [ ] **X7.2 Endurecimiento de seguridad adicional (recomendado, requiere OK del dueño).** El cambio forzado
+- [x] **X7.2 Endurecimiento de seguridad adicional (recomendado, requiere OK del dueño).** El cambio forzado
       en primer acceso ya está implementado en Fase 2 (U2.8/F6.10, DEC-6). Pendiente de aprobación del
       dueño: política mínima de contraseñas (longitud/complejidad) y límite de intentos de login. Criterio:
       pruebas unitarias verifican rechazo de contraseñas fuera de política y bloqueo tras N intentos
-      fallidos.
-- [ ] **X7.3 Pipeline de CI.** En cada commit/PR: lint + migración + suite completa de backend (y frontend si
+      fallidos. **Ejecutado parcialmente (con OK del dueño): política de contraseñas 8-72 + letra/número/
+      mayúscula en backend (`core/password-policy.ts`) y su espejo en frontend; el límite de intentos de
+      login queda pendiente de OK y fuera de esta ejecución.**
+- [x] **X7.3 Pipeline de CI.** En cada commit/PR: lint + migración + suite completa de backend (y frontend si
       aplica) en un ambiente limpio. Criterio: el pipeline falla si alguna prueba falla y bloquea el merge.
-- [ ] **X7.4 Imágenes multi-stage validadas en CI (ARQ-2).** Build de las imágenes dev/prod de backend y
+- [x] **X7.4 Imágenes multi-stage validadas en CI (ARQ-2).** Build de las imágenes dev/prod de backend y
       frontend en cada merge; migraciones controladas y configuración por variables de entorno (secretos
       fuera del repo). Criterio: el pipeline construye las imágenes (dev y prod) y el smoke test (health +
       login) pasa contra staging usando esas imágenes. El despliegue real al servidor se ejecuta en Fase 8.
-- [ ] **X7.5 Prueba de recorrido integral (E2E mínimo).** Flujo: login cliente → crear orden → simular
+- [x] **X7.5 Prueba de recorrido integral (E2E mínimo).** Flujo: login cliente → crear orden → simular
       middleware consumiendo `GET /pending` (cliente HTTP de prueba, sin asumir implementación real) → `PUT
       /sync` → verificar estado "Sincronizada" en panel admin. Criterio: la prueba E2E/smoke pasa de punta a
       punta contra un ambiente de prueba y deja evidencia del contrato consumido.
@@ -371,38 +377,41 @@ checklist sin ítems pendientes salvo los marcados como "requiere OK del dueño"
 
 ---
 
-## Fase 8 — Infraestructura de producción: VPS, dominio, proxy inverso y SSL/HTTPS
+## Fase 8 — Infraestructura de producción: VPS, Cloudflared tunnel y SSL/HTTPS
 
 Pone en producción el anexo v1.2 del TXT (ARQ-2/ARQ-3). Depende de Fase 7 (imágenes validadas en CI).
-Requiere acceso de operador al servidor (VPS) y al DNS del **dominio oficial**; `<dominio>` se reemplaza por
-ese dominio en toda configuración (runbook en `/infra`).
+**Cambio 2026-09:** se reemplaza Nginx + Let's Encrypt + dominio propio por **Cloudflared tunnel**.
+Cloudflared crea un túnel cifrado desde Cloudflare al VPS (conexión outbound, sin puertos públicos),
+eliminando la necesidad de dominio propio, Certbot o abrir puertos 80/443. SSL/TLS gestionado por Cloudflare.
 
 - [ ] **I8.1 Preparación del servidor VPS.** Docker Engine instalado; usuario de despliegue sin root; claves
-      SSH; firewall con 22/80/443 únicamente. Criterio: script de verificación reporta OK (versión de
-      Docker, puertos abiertos, acceso por SSH con clave) — chequeo de humo automatizable.
-- [ ] **I8.2 Asociación del dominio oficial.** Registro DNS A/AAAA de `<dominio>` (o subdominio) apuntando a
-      la IP pública del VPS; se fija el `<dominio>` definitivo del proyecto. Criterio: verificación de
-      resolución (nslookup/curl) confirma que el dominio resuelve a la IP del servidor.
+      SSH; firewall con solo puerto 22 (SSH). Criterio: script de verificación reporta OK (versión de
+      Docker, puerto 22 abierto, acceso por SSH con clave) — chequeo de humo automatizable.
+- [ ] **I8.2 Tunnel Cloudflared (reemplaza dominio + DNS).** Instalar `cloudflared` en el VPS; crear túnel
+      con `cloudflared tunnel create portal` y configurar `cloudflared.yml` con rutas:
+      `https://<subdominio>.trycloudflare.com` → `http://frontend:80` y
+      `https://<subdominio>.trycloudflare.com/api/` → `http://api:3000`. Criterio: `cloudflared tunnel
+      info portal` muestra el túnel activo y la URL asignada responde 200.
 - [ ] **I8.3 Orquestación de producción con Docker (ARQ-2).** `docker-compose.prod.yml`: `api`, `frontend`
-      (estático), `db` y proxy `nginx` en red interna; solo 80/443 públicos; secretos por variables de
-      entorno (`.env.prod` fuera del repo). Criterio: `docker compose -f docker-compose.prod.yml config`
-      valida la definición y la app responde por HTTP local en el servidor (health 200).
-- [ ] **I8.4 Proxy inverso Nginx y enrutamiento (ARQ-3).** Nginx termina TLS, redirige HTTP→HTTPS y enruta
-      `<dominio>/` → frontend y `<dominio>/api/` → backend (incluidos los endpoints del middleware).
-      Criterio: curl por HTTP al dominio entrega la app y `<dominio>/api/health` responde 200 vía proxy.
-- [ ] **I8.5 Certificados SSL/TLS Let's Encrypt (ARQ-3).** Emisión del certificado para `<dominio>` con
-      Certbot integrado al Nginx; renovación automática programada y verificada (dry-run). Criterio:
-      `curl -I https://<dominio>` responde 200 con certificado válido de Let's Encrypt (sin errores de
-      cadena ni advertencias de "Sitio no seguro") y HTTP redirige a HTTPS.
+      (estático), `db` y `cloudflared` en red interna; sin puertos públicos (solo cloudflared hace outbound);
+      secretos por variables de entorno (`.env.prod` fuera del repo). Criterio: `docker compose -f
+      docker-compose.prod.yml config` valida la definición y la app responde por HTTP local en el servidor
+      (health 200).
+- [ ] **I8.4 Enrutamiento Cloudflared (reemplaza Nginx).** Cloudflared enruta el tráfico HTTPS de Cloudflare
+      a los contenedores internos: `/` → frontend, `/api/` → backend (incluidos los endpoints del middleware).
+      Criterio: curl al túnel entrega la app y `/api/health` responde 200.
+- [ ] **I8.5 SSL/TLS Cloudflare (reemplaza Let's Encrypt).** Cloudflare emite y renueva certificados
+      automáticamente; el túnel cifra end-to-end. Criterio: `curl -I https://<subdominio>.trycloudflare.com`
+      responde 200 con certificado válido de Cloudflare (sin errores de cadena ni advertencias).
 - [ ] **I8.6 Operación de producción.** Healthchecks por servicio, logs accesibles, backup periódico de
       PostgreSQL fuera del contenedor y procedimiento de restauración documentado en `/infra`. Criterio:
-      smoke final vía `https://<dominio>` (login + recorrido básico) y backup restaurable verificado en un
-      ambiente de prueba.
+      smoke final vía `https://<subdominio>.trycloudflare.com` (login + recorrido básico) y backup
+      restaurable verificado en un ambiente de prueba.
 - [ ] **I8.7 Recorrido integral HTTPS (cierre de v1).** E2E completa contra producción vía HTTPS (login →
       crear orden → middleware simulado GET/PUT → estado "Sincronizada" en panel admin; ver X7.5). Criterio:
       el recorrido pasa 100% por HTTPS con certificado válido, sin advertencias del navegador.
 
-**Gate F8 (v1 desplegado):** dominio oficial resuelto y con HTTPS válido (Let's Encrypt), proxy enrutando
+**Gate F8 (v1 desplegado):** túnel Cloudflared activo con HTTPS válido (Cloudflare), enrutando
 frontend y API, recorrido integral pasando por HTTPS, backup verificado y checklist de la fase en verde.
 
 ---

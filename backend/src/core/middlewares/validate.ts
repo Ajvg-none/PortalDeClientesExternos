@@ -1,4 +1,4 @@
-import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
 /**
@@ -21,6 +21,3 @@ export function validate(req: Request, res: Response, next: NextFunction): void 
   }
   next();
 }
-
-/** Variante utilizable como RequestHandler directo en arrays de validacion. */
-export const validateRequest: RequestHandler = validate;
